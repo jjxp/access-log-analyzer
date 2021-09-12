@@ -1,3 +1,4 @@
+#!C:/Users/Javier/anaconda3/envs/secureworks-pyspark/ python
 '''
 This is a python coding challenge proposed by secureworks.
 The purpose of this job is to download an access log dataset from NASA and compute the
@@ -24,15 +25,13 @@ import findspark
 from pyspark import SparkConf
 from pyspark import SparkContext
 
-class AccessLogAnalyzer():    
+class AccessLogAnalyzer():
     '''
     This class contains all the required logics to download and perform analytical operations over a NASA access log dataset.
     
     Args:
         k (int): integer, greater than zero, that will indicate how many most-frequent distinct values we want to obtain as a result
         dataset_url (string): URL of the dataset that we want to download
-        force_download (boolean): [optional - defaults to False] force or not the download of the dataset. By default, the logs will not be downloaded if they are have already been downloaded
-        output_name (string): [optional - defaults to 'analysed_access_log_results'] name of the target JSON file that will be generated, that will contain the results
     '''
     def __init__(self, **kwargs):
         # Define a logger
@@ -44,7 +43,7 @@ class AccessLogAnalyzer():
             assert isinstance(kwargs['k'], int), 'The "k" parameter does not match the expected datatype (int)'
             assert kwargs['k'] > 0, 'The "k" parameter must be greater than zero'
             assert isinstance(kwargs['dataset_url'], str), 'The "dataset_url" parameter does not match the expected datatype (str)'
-            assert re.match('^(ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$', dataset_url), 'The "dataset_url" parameter does not match a valid FTP URL'
+            assert re.match('^(ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$', kwargs['dataset_url']), 'The "dataset_url" parameter does not match a valid FTP URL'
         except AssertionError as ae:
             self.logger.error(f'Assertion error: {ae}')
         
@@ -67,6 +66,7 @@ class AccessLogAnalyzer():
 
         conf = SparkConf()
         conf.setAppName('nasa-access-log-analyzer')
+        conf.setMaster('local')
 
         sc = SparkContext(conf=conf)
         
@@ -141,7 +141,7 @@ class AccessLogAnalyzer():
         _total_no_lines = rdd.count()
         
         # Obtain the number of lines that failed parsing
-        _no_failed_lines_parsing = rdd.map(lambda line: check_log_line(line)).filter(lambda line: not line[1]).count()
+        _no_failed_lines_parsing = rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: not line[1]).count()
         
         # Percentage of failed lines over total number of lines
         cleansing_accuracy = (100 - (_no_failed_lines_parsing / _total_no_lines * 100))
@@ -157,7 +157,7 @@ class AccessLogAnalyzer():
         
         Returns: Filtered RDD with only valid lines according to the regex provided
         '''
-        return rdd.map(lambda line: check_log_line(line)).filter(lambda line: line[1]).map(lambda line: line[0])
+        return rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: line[1]).map(lambda line: line[0])
     
     def map_rdd(self, rdd):
         '''
@@ -165,7 +165,7 @@ class AccessLogAnalyzer():
         
         Returns: Mapped RDD according to the regex groups specified
         '''
-        return rdd.map(lambda line: map_log_line(line))
+        return rdd.map(lambda line: self.map_log_line(line))
     
     def get_k_most_frequent_for_column(self, rdd, col_index):
         '''
@@ -181,7 +181,7 @@ class AccessLogAnalyzer():
         
         Returns: Filtered RDD with only lines according to the date requested
         '''
-        return rdd.filter(lambda line: parse_date(line).date() == d)
+        return rdd.filter(lambda line: self.parse_date(line).date() == d)
     
     def get_k_most_frequent_for_each_day(self, rdd):
         '''
@@ -194,22 +194,22 @@ class AccessLogAnalyzer():
         # Define the variables that will contain the target information
         most_frequent_visitors = {}
         most_frequent_urls = {}
-
+        
         # Iterate over all the days of our interest
         for d in [x for x in c.itermonthdates(1995, 7) if x.month == 7 and x.day < 5]: # TODO - parametrise to automatise year and month
             self.logger.info('Iterating over day ', d)
-
+            
             # Get only the lines according to the date over which we are iterating
-            rdd = filter_rdd_for_day(rdd)
+            parsed_rdd = self.filter_rdd_for_day(rdd, d)
             
             # Cache the RDD so we avoid performing the same filtering actions in the next two steps
             rdd.cache()
-
+            
             # k-most-frequent visitors for the day over which we are iterating
-            _day_most_frequent_visitors = get_k_most_frequent_for_column(rdd, col_index = 0)
+            _day_most_frequent_visitors = self.get_k_most_frequent_for_column(parsed_rdd, col_index = 0)
 
             # k-most-frequent urls for the day over which we are iterating
-            _day_most_frequent_urls = get_k_most_frequent_for_column(rdd, col_index = 5)
+            _day_most_frequent_urls = self.get_k_most_frequent_for_column(parsed_rdd, col_index = 5)
             
             # Include the results for this day in the target dictionary
             most_frequent_visitors[d] = _day_most_frequent_visitors
@@ -244,6 +244,8 @@ def init(args):
     
     print(most_frequent_visitors)
     print(most_frequent_urls)
+    
+    return (most_frequent_visitors, most_frequent_urls)
 
 if __name__== "__main__" :
     init(getResolvedOptions(sys.argv, ['k', 'dataset_url']))

@@ -7,3 +7,4 @@ burger.letters.com - - [03/Jul/1995:00:00:12 -0400] "GET /images/NASA-logosmall.
 burger.letters.com - - [03/Jul/1995:00:00:12 -0400] "GET /shuttle/countdown/video/livevideo.gif HTTP/1.0" 200 0
 205.212.115.106 - - [03/Jul/1995:00:00:12 -0400] "GET /shuttle/countdown/countdown.html HTTP/1.0" 200 3985
 d104.aa.net - - [03/Jul/1995:00:00:13 -0400] "GET /shuttle/countdown/ HTTP/1.0" 200 3985
+d104.aa.net - -  [03/Jul/1995:00:00:13 -0400] "GET /WRONG/LINE/ HTTP/1.0" 200 3985
