@@ -58,7 +58,7 @@ class AccessLogAnalyzer():
         
         self.logger.info(f'AccessLogAnalyzer class is ready!')
 
-    def create_spark_context():
+    def create_spark_context(self):
         '''
         Creates and returns an instance of the SparkContext and SQLContext
         
