@@ -1,4 +1,3 @@
-#!C:/Users/Javier/anaconda3/envs/secureworks-pyspark/ python
 '''
 This is a python coding challenge proposed by secureworks.
 The purpose of this job is to download an access log dataset from NASA and compute the
@@ -9,7 +8,7 @@ K-most-frequent visitors and URLs for each day of the trace using Spark.
 @maintainer = ['Javier García Calvo']
 @status     = 'Developing'
 @creation_date = 12/09/2021
-@last_modification = 12/09/2021
+@last_modification = 13/09/2021
 
 '''
 
