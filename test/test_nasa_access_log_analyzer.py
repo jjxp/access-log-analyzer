@@ -12,6 +12,8 @@ from pyspark.context import SparkContext
 from pyspark.sql import SQLContext
 from pyspark.conf import SparkConf
 from pyspark.rdd import RDD
+from pyspark.sql import DataFrame
+import pyspark.sql.functions as F
 
 import findspark
 
@@ -39,12 +41,14 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.sc.stop()
+    
+    def test_instantiate_main_class_1(self):
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
-    def read_sample_data(self, scenario_number):  
-        return TestAccessLogsAnalyzer.sc.textFile('data/sample_data')
+        self.assertIsInstance(access_log_analyzer, AccessLogAnalyzer, f'Expected AccessLogAnalyzer type and received {type(access_log_analyzer)} instead.')
     
     def test_read_source_1(self):
-        access_log_analyzer = AccessLogAnalyzer(k = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
         result = access_log_analyzer.read_source(self.sc, 'data/sample_data')
         
@@ -55,13 +59,13 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertEqual(no_lines, no_lines_expected, f'Expected {no_lines_expected} lines to be read and got {no_lines} instead.')
         
     def test_read_source_2(self):
-        access_log_analyzer = AccessLogAnalyzer(k = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
         with self.assertRaises(Py4JJavaError):
             access_log_analyzer.read_source(self.sc, 'data/non_existing_file').collect()
     
     def test_calculate_cleansing_accuracy_1(self):
-        access_log_analyzer = AccessLogAnalyzer(k = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
         rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
         
@@ -71,7 +75,7 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertEqual(result, result_expected, f'Expected an accuracy of {result_expected} and got {result} instead.')
     
     def test_get_rdd_valid_lines_1(self):
-        access_log_analyzer = AccessLogAnalyzer(k = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
         rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
         
@@ -81,7 +85,7 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertEqual(no_lines, no_lines_expected, f'Expected {no_lines_expected} lines to be read and got {no_lines} instead.')
         
     def test_map_rdd_1(self):
-        access_log_analyzer = AccessLogAnalyzer(k = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
         rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
         rdd = access_log_analyzer.get_rdd_valid_lines(rdd)
@@ -91,35 +95,50 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         no_lines = result.count()
         no_lines_expected = 9
         
-        no_groups_expected = 9
+        no_groups_expected = 11
         no_groups_bool = all(len(line) == no_groups_expected for line in result.collect())
         
         self.assertEqual(no_lines, no_lines_expected, f'Expected {no_lines_expected} lines to be read and got {no_lines} instead.')
         self.assertTrue(no_groups_bool, f'All tuples must have a length of {no_groups_expected}.')
     
     def test_map_rdd_2(self):
-        access_log_analyzer = AccessLogAnalyzer(k = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
         rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
         
         with self.assertRaises(Py4JJavaError):
             result = access_log_analyzer.map_rdd(rdd).collect()
             
-    def test_get_k_most_frequent_for_each_day_1(self):
-        access_log_analyzer = AccessLogAnalyzer(k = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+    def test_get_n_most_frequent_for_each_day_1(self):
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
         
         rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
         rdd = access_log_analyzer.get_rdd_valid_lines(rdd)
         rdd = access_log_analyzer.map_rdd(rdd)
         
-        result = access_log_analyzer.get_k_most_frequent_for_each_day(rdd)
+        result = access_log_analyzer.get_n_most_frequent_for_each_day(TestAccessLogsAnalyzer.sql_ctx, rdd)
+        
+        result[0].show()
+        
+        result[1].show()
         
         self.assertEqual(len(result), 2, f'Expected 2 tuples in the result and got {len(result)} instead.')
-        self.assertTrue(all(type(x) == dict for x in result), f'All objects within the resulting tuple must be a dictionary.')
+        self.assertTrue(all(type(x) == DataFrame for x in result), f'All objects within the resulting tuple must be a DataFrame.')
         
-        expected_result = ({datetime.date(1995, 7, 1): [('199.120.110.21', 2), ('199.72.81.55', 1), ('unicomp6.unicomp.net', 1)], datetime.date(1995, 7, 2): [], datetime.date(1995, 7, 3): [('burger.letters.com', 2), ('205.212.115.106', 1), ('d104.aa.net', 1)], datetime.date(1995, 7, 4): []}, {datetime.date(1995, 7, 1): [('/history/apollo/', 1), ('/shuttle/countdown/', 1), ('/shuttle/missions/sts-73/mission-sts-73.html', 1)], datetime.date(1995, 7, 2): [], datetime.date(1995, 7, 3): [('/images/NASA-logosmall.gif', 1), ('/shuttle/countdown/video/livevideo.gif', 1), ('/shuttle/countdown/countdown.html', 1)], datetime.date(1995, 7, 4): []})
+        no_rows_result = result[0].count()
+        expected_no_rows_result = 3 * 2 # n = 3 * distinct number of days = 2
         
-        self.assertEqual(result, expected_result, f'The result does not match with the expected.')
+        self.assertEqual(no_rows_result, expected_no_rows_result, f'Expected {expected_no_rows_result} rows in the result and got {no_rows_result} instead.')
+        
+        most_frequent_hosts = result[0].filter(F.col('count') == 2).collect()
+        most_frequent_host_day_1 = most_frequent_hosts[0]['host']
+        most_frequent_host_day_3 = most_frequent_hosts[1]['host']
+        
+        expected_most_frequent_host_day_1 = '199.120.110.21'
+        expected_most_frequent_host_day_3 = 'burger.letters.com'
+        
+        self.assertEqual(most_frequent_host_day_1, expected_most_frequent_host_day_1, f'Expected {expected_most_frequent_host_day_1} for the most frequent host in day 1 and got {most_frequent_host_day_1} instead.')
+        self.assertEqual(most_frequent_host_day_3, expected_most_frequent_host_day_3, f'Expected {expected_most_frequent_host_day_3} for the most frequent host in day 1 and got {most_frequent_host_day_3} instead.')
         
 def run_all_test(test_case_class):
 

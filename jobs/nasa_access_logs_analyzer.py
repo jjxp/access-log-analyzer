@@ -23,13 +23,16 @@ from calendar import Calendar, monthrange
 import findspark
 from pyspark import SparkConf
 from pyspark import SparkContext
+from pyspark.sql import SQLContext
+from pyspark.sql.window import Window
+import pyspark.sql.functions as F
 
 class AccessLogAnalyzer():
     '''
     This class contains all the required logics to download and perform analytical operations over a NASA access log dataset.
     
     Args:
-        k (int): integer, greater than zero, that will indicate how many most-frequent distinct values we want to obtain as a result
+        n (int): integer, greater than zero, that will indicate how many most-frequent distinct values we want to obtain as a result
         dataset_url (string): URL of the dataset that we want to download
     '''
     def __init__(self, **kwargs):
@@ -39,27 +42,27 @@ class AccessLogAnalyzer():
         
         # Perform checks to test whether the parameters have the expected values
         try:
-            assert isinstance(kwargs['k'], int), 'The "k" parameter does not match the expected datatype (int)'
-            assert kwargs['k'] > 0, 'The "k" parameter must be greater than zero'
+            assert isinstance(kwargs['n'], int), 'The "n" parameter does not match the expected datatype (int)'
+            assert kwargs['n'] > 0, 'The "n" parameter must be greater than zero'
             assert isinstance(kwargs['dataset_url'], str), 'The "dataset_url" parameter does not match the expected datatype (str)'
             assert re.match('^(ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$', kwargs['dataset_url']), 'The "dataset_url" parameter does not match a valid FTP URL'
         except AssertionError as ae:
             self.logger.error(f'Assertion error: {ae}')
         
         # Assign external arguments to class attributes
-        self.k = kwargs['k']
+        self.n = kwargs['n']
         self.dataset_url = kwargs['dataset_url']
         
         # Regex for cleaning and extracting groups from the logs
-        self.regex = '^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
+        self.regex = '^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
         
         self.logger.info(f'AccessLogAnalyzer class is ready!')
 
     def create_spark_context():
         '''
-        Creates and returns an instance of the SparkContext
+        Creates and returns an instance of the SparkContext and SQLContext
         
-        Returns: SparkContext
+        Returns: Tuple containing SparkContext and SQLContext
         '''
         findspark.init()
 
@@ -68,8 +71,9 @@ class AccessLogAnalyzer():
         conf.setMaster('local')
 
         sc = SparkContext(conf=conf)
+        sql_context = SQLContext(sc)
         
-        return sc
+        return (sc, sql_context)
     
     def download_access_logs(self):
         '''
@@ -119,15 +123,6 @@ class AccessLogAnalyzer():
         match = re.search(self.regex, line)
 
         return match.groups()
-
-    def parse_date(self, line):
-        '''
-        Obtains a datetime object out of a particular string format
-        Assumes that the date format is %d/%b/%Y:%H:%M:%S %z
-        
-        Returns: Datetime object after parsing the provided string
-        '''
-        return datetime.strptime(line[3], "%d/%b/%Y:%H:%M:%S %z")
     
     def calculate_cleansing_accuracy(self, rdd):
         '''
@@ -166,54 +161,36 @@ class AccessLogAnalyzer():
         '''
         return rdd.map(lambda line: self.map_log_line(line))
     
-    def get_k_most_frequent_for_column(self, rdd, col_index):
+    def get_n_most_frequent_for_columns(self, df, col_a, col_b):
         '''
-        Obtains a RDD in decreasing order that will contain the k-most-frequent values for the specified column index
+        Receives a DataFrame and, grouping by the specified columns, calculates the number of rows for the second column.
+        After that, it performs a window function that assigns a row number over the first column (partition key) and orders it in descending order.
+        Then, it performs a filter operation and keeps only the values for the 'row_number' column that are minor or equal to 'N'.
+        Afterwards, it drops the 'row_number' column and orders the data in ascending order for the first column, and descending for the second.
+        In this way, it obtains the n-most-frequent values of the second column and their frequence for each value of the first column.
         
-        Returns: Ordered RDD with k-most-frequent values for specified column
+        Returns: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
         '''
-        return rdd.map(lambda line: (line[col_index], 1)).reduceByKey(lambda a, b: a + b).takeOrdered(self.k, lambda x: -x[1])
+        try:
+            assert col_a in df.columns, f'{col_a} is not present in the DataFrame columns.'
+            assert col_b in df.columns, f'{col_b} is not present in the DataFrame columns.'
+        except AssertionError as ae:
+            self.logger.error(f'Assertion error: {ae}')
+            
+        return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias('count')).withColumn('row_number', F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc('count')))).filter(F.col('row_number') <= self.n).drop('row_number').orderBy(F.asc(col_a), F.desc(col_b))
     
-    def filter_rdd_for_day(self, rdd, d):
+    def get_n_most_frequent_for_each_day(self, sql_context, rdd):
         '''
-        Filters a given RDD, returning only the lines that are written the day passed as parameter
+        Calculates the n-most-frequent visitors and URLs for each day in the trace
         
-        Returns: Filtered RDD with only lines according to the date requested
+        Returns: A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls
         '''
-        return rdd.filter(lambda line: self.parse_date(line).date() == d)
-    
-    def get_k_most_frequent_for_each_day(self, rdd):
-        '''
-        Calculates the k-most-frequent visitors and URLs for each day in the trace
+        # Create a dataframe out of a processed RDD and define the schema. Sampling ratio is needed to infer the datatypes
+        _df = sql_context.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = 0.2)
         
-        Returns: A tuple containing first a dictionary with the most frequent visitors, and second the most frequent urls
-        '''
-        c = Calendar()
+        most_frequent_visitors = self.get_n_most_frequent_for_columns(_df, 'date', 'host')
+        most_frequent_urls = self.get_n_most_frequent_for_columns(_df, 'date', 'resource')
         
-        # Define the variables that will contain the target information
-        most_frequent_visitors = {}
-        most_frequent_urls = {}
-        
-        # Iterate over all the days of our interest
-        for d in [x for x in c.itermonthdates(1995, 7) if x.month == 7 and x.day < 5]: # TODO - parametrise to automatise year and month
-            self.logger.info('Iterating over day ', d)
-            
-            # Get only the lines according to the date over which we are iterating
-            parsed_rdd = self.filter_rdd_for_day(rdd, d)
-            
-            # Cache the RDD so we avoid performing the same filtering actions in the next two steps
-            rdd.cache()
-            
-            # k-most-frequent visitors for the day over which we are iterating
-            _day_most_frequent_visitors = self.get_k_most_frequent_for_column(parsed_rdd, col_index = 0)
-
-            # k-most-frequent urls for the day over which we are iterating
-            _day_most_frequent_urls = self.get_k_most_frequent_for_column(parsed_rdd, col_index = 5)
-            
-            # Include the results for this day in the target dictionary
-            most_frequent_visitors[d] = _day_most_frequent_visitors
-            most_frequent_urls[d] = _day_most_frequent_urls
-            
         return (most_frequent_visitors, most_frequent_urls)
     
 def init(args):
@@ -223,8 +200,8 @@ def init(args):
     # Download the logs
     logs_name = log_analyzer.download_access_logs()
     
-    # Create the Spark Context
-    sc = log_analyzer.create_spark_context()
+    # Create the Spark Context and SQLContext
+    (sc, sql_context) = log_analyzer.create_spark_context()
     
     # Read the source data
     rdd = log_analyzer.read_source(sc, logs_name)
@@ -239,10 +216,9 @@ def init(args):
     rdd = log_analyzer.map_rdd(rdd)
     
     # Get the most frequent visitors and urls for each day of the trace
-    (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_k_most_frequent_for_each_day(rdd)
+    (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_n_most_frequent_for_each_day(sql_context, rdd)
     
-    print(most_frequent_visitors)
-    print(most_frequent_urls)
+    sc.stop()
     
     return (most_frequent_visitors, most_frequent_urls)
 
