@@ -20,13 +20,10 @@ script:
 - cd test/
 - coverage run -m unittest discover
 - coverage xml
+- sonar-scanner
 
 addons:
   sonarcloud:
     organization: "jjxp"
     token:
       secure: U4W81D7Y3Bsxc8ZgAS0vy+BmmEC1W9sKoZDqnuOgW0fhFta/7rDgGXukkoEKHqW4NrglV7LsuUkUBRTLSB4E6IV9srvs2BOnu/6ZwpGPhGA2XvQL+W05N3ZzSJAnX87GkDOPWjDMNxGBIlhQcLzeO4dgqIYMKmbQyf3ahvCmIymnUJc+17WJLWGbtndNtg7R7XkiKO6bVycsmOEWkFoDOtDkQwSYZNJ8/tAC5DQz8Aycutaos2sQZscoczl7TxWZPULwEuGuxdJcgCFnGfRTIS1yr6TUnz+yqs3Nk697IBxSSbozc6wGHBNBkaBMILjWVM+jey0RytScXH//DpEq4Or4A9GSiIKkKn4tcJFcONlaQnBK1Xo5haNnqsu49RekK/RvtmLptFVX0XGKXYHY2koThgHSifJpAQchTV2T5KfUQzMUeJhOuqZpUisX7NMOJSsQLgtjcZu4wwuIYVcv/gm6GQD7CGwDgcqKGPAF2ZwxvdA1ThGJOE9GTPcNwsHtlpkp3jahvotGnrUBP+fT3S7jmGhSsQYsZMZNxsLLbJE1Fk8415hoQ9pXZEnX38MKh/foS7qE2WH+jVligYxbmAOlO3+l7FCmllzTg1cLMq586jDu00Dz/fYY4j/FzPFooeNlPp+f/pFrJ6RTOMVBAt0PclrHLTDhDg4cJlRHroc=
-
-script:
-  # the following command line builds the project, runs the tests with coverage and then execute the SonarCloud analysis
-  - sonar-scanner
