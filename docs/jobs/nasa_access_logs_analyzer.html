@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>jobs.nasa_access_logs_analyzer API documentation</title>
+<meta name="description" content="This is a python coding challenge proposed by secureworks.
+The purpose of this job is to download an access log dataset from NASA and compute the
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jobs.nasa_access_logs_analyzer</code></h1>
+</header>
+<section id="section-intro">
+<p>This is a python coding challenge proposed by secureworks.
+The purpose of this job is to download an access log dataset from NASA and compute the
+n-most-frequent visitors and URLs for each day of the trace using Spark.</p>
+<p>@author
+= 'Javier García Calvo'</p>
+<p>@version
+= '1.0a'</p>
+<p>@maintainer = ['Javier García Calvo']</p>
+<p>@status
+= 'Developing'</p>
+<p>@creation_date = 12/09/2021</p>
+<p>@last_modification = 14/09/2021</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+This is a python coding challenge proposed by secureworks.
+The purpose of this job is to download an access log dataset from NASA and compute the
+n-most-frequent visitors and URLs for each day of the trace using Spark.
+
+@author     = &#39;Javier García Calvo&#39;
+
+@version    = &#39;1.0a&#39;
+
+@maintainer = [&#39;Javier García Calvo&#39;]
+
+@status     = &#39;Developing&#39;
+
+@creation_date = 12/09/2021
+
+@last_modification = 14/09/2021
+
+&#39;&#39;&#39;
+
+# Import all required dependencies
+import re
+import logging
+import shutil
+import urllib.request as request
+from contextlib import closing
+from datetime import datetime
+from calendar import Calendar, monthrange
+import findspark
+from pyspark import SparkConf
+from pyspark import SparkContext
+from pyspark.sql import SQLContext
+from pyspark.sql.window import Window
+import pyspark.sql.functions as F
+
+class AccessLogAnalyzer():
+    &#39;&#39;&#39;
+    This class contains all the required logics to download and perform analytical operations over a NASA access log dataset.
+    
+    Args:
+        n (int): integer, greater than zero, that will indicate how many most-frequent distinct values we want to obtain as a result
+        dataset_url (str): URL of the dataset that we want to download
+    &#39;&#39;&#39;
+    def __init__(self, **kwargs):
+        # Define a logger
+        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(&#39;access_log_analyzer&#39;)
+        
+        # Perform checks to test whether the parameters have the expected values
+        try:
+            assert isinstance(kwargs[&#39;n&#39;], int), &#39;The &#34;n&#34; parameter does not match the expected datatype (int)&#39;
+            assert kwargs[&#39;n&#39;] &gt; 0, &#39;The &#34;n&#34; parameter must be greater than zero&#39;
+            assert isinstance(kwargs[&#39;dataset_url&#39;], str), &#39;The &#34;dataset_url&#34; parameter does not match the expected datatype (str)&#39;
+            assert re.match(&#39;^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$&#39;, kwargs[&#39;dataset_url&#39;]), &#39;The &#34;dataset_url&#34; parameter does not match a valid FTP URL&#39;
+        except AssertionError as ae:
+            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+        
+        # Assign external arguments to class attributes
+        self.n = kwargs[&#39;n&#39;]
+        self.dataset_url = kwargs[&#39;dataset_url&#39;]
+        
+        # Regex for cleaning and extracting groups from the logs
+        self.regex = &#39;^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] &#34;(\S+) (\S+)\s*(\S+)?\s*&#34; (\d{3}) (\S+)&#39;
+        
+        self.logger.info(f&#39;AccessLogAnalyzer class is ready!&#39;)
+
+    def create_spark_context(self): # pragma: no cover
+        &#39;&#39;&#39;
+        Creates and returns an instance of the SparkContext and SQLContext
+        
+        Returns:
+            tuple(SparkContext, SQLContext): Tuple containing SparkContext and SQLContext
+        &#39;&#39;&#39;
+        findspark.init()
+
+        conf = SparkConf()
+        conf.setAppName(&#39;nasa-access-log-analyzer&#39;)
+        conf.setMaster(&#39;local&#39;)
+
+        sc = SparkContext(conf=conf)
+        sql_context = SQLContext(sc)
+        
+        return (sc, sql_context)
+    
+    def download_access_logs(self): # pragma: no cover
+        &#39;&#39;&#39;
+        Connects to the FTP repository provided in the arguments to this job, and downloads it
+        
+        Returns:
+            str: String value of the downloaded filename
+        &#39;&#39;&#39;
+        # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
+        access_log_name = self.dataset_url.split(&#39;/&#39;)[1]
+        
+        with closing(request.urlopen(self.dataset_url)) as r:
+            with open(access_log_name, &#39;wb&#39;) as f:
+                shutil.copyfileobj(r, f)
+        
+        return access_log_name
+    
+    def read_source(self, sc, source_name):
+        &#39;&#39;&#39;
+        Reads the source access logs and creates a Spark RDD out of it
+        Assumes that the source data is coming in a format that the textFile function of SparkContext will be able to parse
+        
+        Args:
+            sc (SparkContext): An instance of a SparkContext
+            source_name (str): URL or location of the dataset that we want to download
+        
+        Returns:
+            RDD: A Spark RDD pointing to the access logs data
+        &#39;&#39;&#39;
+        rdd = sc.textFile(source_name)
+        
+        return rdd
+    
+    def check_log_line(self, line):
+        &#39;&#39;&#39;
+        Checks whether, out of a particular line, the validity (regex compliance) of such line
+        
+        Args:
+            line (?): Argument of a lambda expression performed over a RDD
+        
+        Returns:
+            tuple(?, bool): A tuple that will contain the line and a boolean that indicates whether the line is valid or not
+        &#39;&#39;&#39;
+        match = re.search(self.regex, line)
+
+        if match is None:
+            return (line, False)
+
+        return (line, True)
+
+    def map_log_line(self, line):
+        &#39;&#39;&#39;
+        Cleansing function that will, out of a particular line, map it according to the regex groups
+        
+        Args:
+            line (?): Argument of a lambda expression performed over a RDD
+        
+        Returns:
+            tuple: A tuple containing the groups that match the regex expression
+        &#39;&#39;&#39;
+        match = re.search(self.regex, line)
+
+        return match.groups()
+    
+    def calculate_cleansing_accuracy(self, rdd):
+        &#39;&#39;&#39;
+        Calculates the accuracy of the cleansing process performed over the source data.
+        Accuracy is calculated with the following expression: (100 - (failed_lines / total_lines * 100)).
+        It indicates the percentage of lines that the job has been able to parse successfully.
+        
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            float: Float number for the cleansing accuracy
+        &#39;&#39;&#39;
+        # Obtain the total number of lines
+        _total_no_lines = rdd.count()
+        
+        # Obtain the number of lines that failed parsing
+        _no_failed_lines_parsing = rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: not line[1]).count()
+        
+        # Percentage of failed lines over total number of lines
+        cleansing_accuracy = (100 - (_no_failed_lines_parsing / _total_no_lines * 100))
+
+        self.logger.info(f&#39;Failed to parse {_no_failed_lines_parsing} out of {_total_no_lines}&#39;)
+        self.logger.info(f&#39;Accuracy of the cleansing process is {cleansing_accuracy:.2f}%&#39;)
+        
+        return cleansing_accuracy
+    
+    def get_rdd_valid_lines(self, rdd):
+        &#39;&#39;&#39;
+        Receives a RDD and returns only the lines that are valid, according to the regex specifications
+        
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            RDD: Filtered RDD with only valid lines according to the regex provided
+        &#39;&#39;&#39;
+        return rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: line[1]).map(lambda line: line[0])
+    
+    def map_rdd(self, rdd):
+        &#39;&#39;&#39;
+        Receives a RDD and maps its lines to the regex groups specified
+        
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            RDD: Mapped RDD according to the regex groups specified
+        &#39;&#39;&#39;
+        return rdd.map(lambda line: self.map_log_line(line))
+    
+    def get_n_most_frequent_for_columns(self, df, col_a, col_b):
+        &#39;&#39;&#39;
+        Receives a DataFrame and, grouping by the specified columns, calculates the number of rows for the second column.
+        After that, it performs a window function that assigns a row number over the first column (partition key) and orders it in descending order.
+        Then, it performs a filter operation and keeps only the values for the &#39;row_number&#39; column that are minor or equal to &#39;N&#39;.
+        Afterwards, it drops the &#39;row_number&#39; column and orders the data in ascending order for the first column, and descending for the second.
+        In this way, it obtains the n-most-frequent values of the second column and their frequence for each value of the first column.
+        
+        Args:
+            df (df): The DataFrame over which we want to perform the operation
+            col_a (str): The string column name on which we will partition over
+            col_b (str): The string column name on which we will calculate the n-most-frequent values
+        
+        Returns:
+            DataFrame: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
+        &#39;&#39;&#39;
+        try:
+            assert col_a in df.columns, f&#39;{col_a} is not present in the DataFrame columns.&#39;
+            assert col_b in df.columns, f&#39;{col_b} is not present in the DataFrame columns.&#39;
+        except AssertionError as ae:
+            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+            
+        return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).drop(&#39;row_number&#39;).orderBy(F.asc(col_a), F.desc(col_b))
+    
+    def get_n_most_frequent_for_each_day(self, sql_context, rdd, sampling_ratio = 0.1):
+        &#39;&#39;&#39;
+        Calculates the n-most-frequent visitors and URLs for each day in the trace
+        
+        Args:
+            sql_context (SQLContext): An instance of the SQLContext
+            rdd (RDD): The RDD over which we want to perform the operation
+            sampling_ratio (float): [optional - defaults to 0.1] The sampling ratio of selected rows over the total to infer the datatypes when creating the DataFrame
+        
+        Returns:
+            tuple(DataFrame, DataFrame): A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls
+        &#39;&#39;&#39;
+        # Create a dataframe out of a processed RDD and define the schema. Sampling ratio is needed to infer the datatypes
+        _df = sql_context.createDataFrame(rdd, schema = [&#39;host&#39;, &#39;identity_remote&#39;, &#39;identity_local&#39;, &#39;date&#39;, &#39;time&#39;, &#39;timezone&#39;, &#39;request_method&#39;, &#39;resource&#39;, &#39;protocol&#39;, &#39;status_code&#39;, &#39;bytes_returned&#39;], samplingRatio = sampling_ratio)
+        
+        most_frequent_visitors = self.get_n_most_frequent_for_columns(_df, &#39;date&#39;, &#39;host&#39;)
+        most_frequent_urls = self.get_n_most_frequent_for_columns(_df, &#39;date&#39;, &#39;resource&#39;)
+        
+        return (most_frequent_visitors, most_frequent_urls)
+    
+def init(args): # pragma: no cover
+    # Start off by creating an instance of the AccessLogAnalyzer class, passing the sys arguments as a parameter
+    log_analyzer = AccessLogAnalyzer(args)
+    
+    # Download the logs
+    logs_name = log_analyzer.download_access_logs()
+    
+    # Create the Spark Context and SQLContext
+    (sc, sql_context) = log_analyzer.create_spark_context()
+    
+    # Read the source data
+    rdd = log_analyzer.read_source(sc, logs_name)
+    
+    # Calculate the cleansing accuracy of the process
+    log_analyzer.calculate_cleansing_accuracy(rdd)
+    
+    # Filter the RDD and get only the valid lines that match the regex pattern
+    rdd = log_analyzer.get_rdd_valid_lines(rdd)
+    
+    # Map the RDD and obtain groups from each line
+    rdd = log_analyzer.map_rdd(rdd)
+    
+    # Get the most frequent visitors and urls for each day of the trace
+    (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_n_most_frequent_for_each_day(sql_context, rdd)
+    
+    sc.stop()
+    
+    return (most_frequent_visitors, most_frequent_urls)
+
+if __name__== &#34;__main__&#34; : # pragma: no cover
+    init(getResolvedOptions(sys.argv, [&#39;k&#39;, &#39;dataset_url&#39;]))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jobs.nasa_access_logs_analyzer.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init(args): # pragma: no cover
+    # Start off by creating an instance of the AccessLogAnalyzer class, passing the sys arguments as a parameter
+    log_analyzer = AccessLogAnalyzer(args)
+    
+    # Download the logs
+    logs_name = log_analyzer.download_access_logs()
+    
+    # Create the Spark Context and SQLContext
+    (sc, sql_context) = log_analyzer.create_spark_context()
+    
+    # Read the source data
+    rdd = log_analyzer.read_source(sc, logs_name)
+    
+    # Calculate the cleansing accuracy of the process
+    log_analyzer.calculate_cleansing_accuracy(rdd)
+    
+    # Filter the RDD and get only the valid lines that match the regex pattern
+    rdd = log_analyzer.get_rdd_valid_lines(rdd)
+    
+    # Map the RDD and obtain groups from each line
+    rdd = log_analyzer.map_rdd(rdd)
+    
+    # Get the most frequent visitors and urls for each day of the trace
+    (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_n_most_frequent_for_each_day(sql_context, rdd)
+    
+    sc.stop()
+    
+    return (most_frequent_visitors, most_frequent_urls)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer"><code class="flex name class">
+<span>class <span class="ident">AccessLogAnalyzer</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class contains all the required logics to download and perform analytical operations over a NASA access log dataset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>n</code></strong> :&ensp;<code>int</code></dt>
+<dd>integer, greater than zero, that will indicate how many most-frequent distinct values we want to obtain as a result</dd>
+<dt><strong><code>dataset_url</code></strong> :&ensp;<code>str</code></dt>
+<dd>URL of the dataset that we want to download</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AccessLogAnalyzer():
+    &#39;&#39;&#39;
+    This class contains all the required logics to download and perform analytical operations over a NASA access log dataset.
+    
+    Args:
+        n (int): integer, greater than zero, that will indicate how many most-frequent distinct values we want to obtain as a result
+        dataset_url (str): URL of the dataset that we want to download
+    &#39;&#39;&#39;
+    def __init__(self, **kwargs):
+        # Define a logger
+        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(&#39;access_log_analyzer&#39;)
+        
+        # Perform checks to test whether the parameters have the expected values
+        try:
+            assert isinstance(kwargs[&#39;n&#39;], int), &#39;The &#34;n&#34; parameter does not match the expected datatype (int)&#39;
+            assert kwargs[&#39;n&#39;] &gt; 0, &#39;The &#34;n&#34; parameter must be greater than zero&#39;
+            assert isinstance(kwargs[&#39;dataset_url&#39;], str), &#39;The &#34;dataset_url&#34; parameter does not match the expected datatype (str)&#39;
+            assert re.match(&#39;^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$&#39;, kwargs[&#39;dataset_url&#39;]), &#39;The &#34;dataset_url&#34; parameter does not match a valid FTP URL&#39;
+        except AssertionError as ae:
+            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+        
+        # Assign external arguments to class attributes
+        self.n = kwargs[&#39;n&#39;]
+        self.dataset_url = kwargs[&#39;dataset_url&#39;]
+        
+        # Regex for cleaning and extracting groups from the logs
+        self.regex = &#39;^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] &#34;(\S+) (\S+)\s*(\S+)?\s*&#34; (\d{3}) (\S+)&#39;
+        
+        self.logger.info(f&#39;AccessLogAnalyzer class is ready!&#39;)
+
+    def create_spark_context(self): # pragma: no cover
+        &#39;&#39;&#39;
+        Creates and returns an instance of the SparkContext and SQLContext
+        
+        Returns:
+            tuple(SparkContext, SQLContext): Tuple containing SparkContext and SQLContext
+        &#39;&#39;&#39;
+        findspark.init()
+
+        conf = SparkConf()
+        conf.setAppName(&#39;nasa-access-log-analyzer&#39;)
+        conf.setMaster(&#39;local&#39;)
+
+        sc = SparkContext(conf=conf)
+        sql_context = SQLContext(sc)
+        
+        return (sc, sql_context)
+    
+    def download_access_logs(self): # pragma: no cover
+        &#39;&#39;&#39;
+        Connects to the FTP repository provided in the arguments to this job, and downloads it
+        
+        Returns:
+            str: String value of the downloaded filename
+        &#39;&#39;&#39;
+        # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
+        access_log_name = self.dataset_url.split(&#39;/&#39;)[1]
+        
+        with closing(request.urlopen(self.dataset_url)) as r:
+            with open(access_log_name, &#39;wb&#39;) as f:
+                shutil.copyfileobj(r, f)
+        
+        return access_log_name
+    
+    def read_source(self, sc, source_name):
+        &#39;&#39;&#39;
+        Reads the source access logs and creates a Spark RDD out of it
+        Assumes that the source data is coming in a format that the textFile function of SparkContext will be able to parse
+        
+        Args:
+            sc (SparkContext): An instance of a SparkContext
+            source_name (str): URL or location of the dataset that we want to download
+        
+        Returns:
+            RDD: A Spark RDD pointing to the access logs data
+        &#39;&#39;&#39;
+        rdd = sc.textFile(source_name)
+        
+        return rdd
+    
+    def check_log_line(self, line):
+        &#39;&#39;&#39;
+        Checks whether, out of a particular line, the validity (regex compliance) of such line
+        
+        Args:
+            line (?): Argument of a lambda expression performed over a RDD
+        
+        Returns:
+            tuple(?, bool): A tuple that will contain the line and a boolean that indicates whether the line is valid or not
+        &#39;&#39;&#39;
+        match = re.search(self.regex, line)
+
+        if match is None:
+            return (line, False)
+
+        return (line, True)
+
+    def map_log_line(self, line):
+        &#39;&#39;&#39;
+        Cleansing function that will, out of a particular line, map it according to the regex groups
+        
+        Args:
+            line (?): Argument of a lambda expression performed over a RDD
+        
+        Returns:
+            tuple: A tuple containing the groups that match the regex expression
+        &#39;&#39;&#39;
+        match = re.search(self.regex, line)
+
+        return match.groups()
+    
+    def calculate_cleansing_accuracy(self, rdd):
+        &#39;&#39;&#39;
+        Calculates the accuracy of the cleansing process performed over the source data.
+        Accuracy is calculated with the following expression: (100 - (failed_lines / total_lines * 100)).
+        It indicates the percentage of lines that the job has been able to parse successfully.
+        
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            float: Float number for the cleansing accuracy
+        &#39;&#39;&#39;
+        # Obtain the total number of lines
+        _total_no_lines = rdd.count()
+        
+        # Obtain the number of lines that failed parsing
+        _no_failed_lines_parsing = rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: not line[1]).count()
+        
+        # Percentage of failed lines over total number of lines
+        cleansing_accuracy = (100 - (_no_failed_lines_parsing / _total_no_lines * 100))
+
+        self.logger.info(f&#39;Failed to parse {_no_failed_lines_parsing} out of {_total_no_lines}&#39;)
+        self.logger.info(f&#39;Accuracy of the cleansing process is {cleansing_accuracy:.2f}%&#39;)
+        
+        return cleansing_accuracy
+    
+    def get_rdd_valid_lines(self, rdd):
+        &#39;&#39;&#39;
+        Receives a RDD and returns only the lines that are valid, according to the regex specifications
+        
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            RDD: Filtered RDD with only valid lines according to the regex provided
+        &#39;&#39;&#39;
+        return rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: line[1]).map(lambda line: line[0])
+    
+    def map_rdd(self, rdd):
+        &#39;&#39;&#39;
+        Receives a RDD and maps its lines to the regex groups specified
+        
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            RDD: Mapped RDD according to the regex groups specified
+        &#39;&#39;&#39;
+        return rdd.map(lambda line: self.map_log_line(line))
+    
+    def get_n_most_frequent_for_columns(self, df, col_a, col_b):
+        &#39;&#39;&#39;
+        Receives a DataFrame and, grouping by the specified columns, calculates the number of rows for the second column.
+        After that, it performs a window function that assigns a row number over the first column (partition key) and orders it in descending order.
+        Then, it performs a filter operation and keeps only the values for the &#39;row_number&#39; column that are minor or equal to &#39;N&#39;.
+        Afterwards, it drops the &#39;row_number&#39; column and orders the data in ascending order for the first column, and descending for the second.
+        In this way, it obtains the n-most-frequent values of the second column and their frequence for each value of the first column.
+        
+        Args:
+            df (df): The DataFrame over which we want to perform the operation
+            col_a (str): The string column name on which we will partition over
+            col_b (str): The string column name on which we will calculate the n-most-frequent values
+        
+        Returns:
+            DataFrame: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
+        &#39;&#39;&#39;
+        try:
+            assert col_a in df.columns, f&#39;{col_a} is not present in the DataFrame columns.&#39;
+            assert col_b in df.columns, f&#39;{col_b} is not present in the DataFrame columns.&#39;
+        except AssertionError as ae:
+            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+            
+        return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).drop(&#39;row_number&#39;).orderBy(F.asc(col_a), F.desc(col_b))
+    
+    def get_n_most_frequent_for_each_day(self, sql_context, rdd, sampling_ratio = 0.1):
+        &#39;&#39;&#39;
+        Calculates the n-most-frequent visitors and URLs for each day in the trace
+        
+        Args:
+            sql_context (SQLContext): An instance of the SQLContext
+            rdd (RDD): The RDD over which we want to perform the operation
+            sampling_ratio (float): [optional - defaults to 0.1] The sampling ratio of selected rows over the total to infer the datatypes when creating the DataFrame
+        
+        Returns:
+            tuple(DataFrame, DataFrame): A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls
+        &#39;&#39;&#39;
+        # Create a dataframe out of a processed RDD and define the schema. Sampling ratio is needed to infer the datatypes
+        _df = sql_context.createDataFrame(rdd, schema = [&#39;host&#39;, &#39;identity_remote&#39;, &#39;identity_local&#39;, &#39;date&#39;, &#39;time&#39;, &#39;timezone&#39;, &#39;request_method&#39;, &#39;resource&#39;, &#39;protocol&#39;, &#39;status_code&#39;, &#39;bytes_returned&#39;], samplingRatio = sampling_ratio)
+        
+        most_frequent_visitors = self.get_n_most_frequent_for_columns(_df, &#39;date&#39;, &#39;host&#39;)
+        most_frequent_urls = self.get_n_most_frequent_for_columns(_df, &#39;date&#39;, &#39;resource&#39;)
+        
+        return (most_frequent_visitors, most_frequent_urls)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.calculate_cleansing_accuracy"><code class="name flex">
+<span>def <span class="ident">calculate_cleansing_accuracy</span></span>(<span>self, rdd)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the accuracy of the cleansing process performed over the source data.
+Accuracy is calculated with the following expression: (100 - (failed_lines / total_lines * 100)).
+It indicates the percentage of lines that the job has been able to parse successfully.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>rdd</code></strong> :&ensp;<code>RDD</code></dt>
+<dd>The RDD over which we want to perform the operation</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Float number for the cleansing accuracy</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_cleansing_accuracy(self, rdd):
+    &#39;&#39;&#39;
+    Calculates the accuracy of the cleansing process performed over the source data.
+    Accuracy is calculated with the following expression: (100 - (failed_lines / total_lines * 100)).
+    It indicates the percentage of lines that the job has been able to parse successfully.
+    
+    Args:
+        rdd (RDD): The RDD over which we want to perform the operation
+    
+    Returns:
+        float: Float number for the cleansing accuracy
+    &#39;&#39;&#39;
+    # Obtain the total number of lines
+    _total_no_lines = rdd.count()
+    
+    # Obtain the number of lines that failed parsing
+    _no_failed_lines_parsing = rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: not line[1]).count()
+    
+    # Percentage of failed lines over total number of lines
+    cleansing_accuracy = (100 - (_no_failed_lines_parsing / _total_no_lines * 100))
+
+    self.logger.info(f&#39;Failed to parse {_no_failed_lines_parsing} out of {_total_no_lines}&#39;)
+    self.logger.info(f&#39;Accuracy of the cleansing process is {cleansing_accuracy:.2f}%&#39;)
+    
+    return cleansing_accuracy</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.check_log_line"><code class="name flex">
+<span>def <span class="ident">check_log_line</span></span>(<span>self, line)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Checks whether, out of a particular line, the validity (regex compliance) of such line</p>
+<h2 id="args">Args</h2>
+<p>line (?): Argument of a lambda expression performed over a RDD</p>
+<h2 id="returns">Returns</h2>
+<p>tuple(?, bool): A tuple that will contain the line and a boolean that indicates whether the line is valid or not</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_log_line(self, line):
+    &#39;&#39;&#39;
+    Checks whether, out of a particular line, the validity (regex compliance) of such line
+    
+    Args:
+        line (?): Argument of a lambda expression performed over a RDD
+    
+    Returns:
+        tuple(?, bool): A tuple that will contain the line and a boolean that indicates whether the line is valid or not
+    &#39;&#39;&#39;
+    match = re.search(self.regex, line)
+
+    if match is None:
+        return (line, False)
+
+    return (line, True)</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.create_spark_context"><code class="name flex">
+<span>def <span class="ident">create_spark_context</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates and returns an instance of the SparkContext and SQLContext</p>
+<h2 id="returns">Returns</h2>
+<p>tuple(SparkContext, SQLContext): Tuple containing SparkContext and SQLContext</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_spark_context(self): # pragma: no cover
+    &#39;&#39;&#39;
+    Creates and returns an instance of the SparkContext and SQLContext
+    
+    Returns:
+        tuple(SparkContext, SQLContext): Tuple containing SparkContext and SQLContext
+    &#39;&#39;&#39;
+    findspark.init()
+
+    conf = SparkConf()
+    conf.setAppName(&#39;nasa-access-log-analyzer&#39;)
+    conf.setMaster(&#39;local&#39;)
+
+    sc = SparkContext(conf=conf)
+    sql_context = SQLContext(sc)
+    
+    return (sc, sql_context)</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.download_access_logs"><code class="name flex">
+<span>def <span class="ident">download_access_logs</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Connects to the FTP repository provided in the arguments to this job, and downloads it</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>String value of the downloaded filename</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def download_access_logs(self): # pragma: no cover
+    &#39;&#39;&#39;
+    Connects to the FTP repository provided in the arguments to this job, and downloads it
+    
+    Returns:
+        str: String value of the downloaded filename
+    &#39;&#39;&#39;
+    # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
+    access_log_name = self.dataset_url.split(&#39;/&#39;)[1]
+    
+    with closing(request.urlopen(self.dataset_url)) as r:
+        with open(access_log_name, &#39;wb&#39;) as f:
+            shutil.copyfileobj(r, f)
+    
+    return access_log_name</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_n_most_frequent_for_columns"><code class="name flex">
+<span>def <span class="ident">get_n_most_frequent_for_columns</span></span>(<span>self, df, col_a, col_b)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Receives a DataFrame and, grouping by the specified columns, calculates the number of rows for the second column.
+After that, it performs a window function that assigns a row number over the first column (partition key) and orders it in descending order.
+Then, it performs a filter operation and keeps only the values for the 'row_number' column that are minor or equal to 'N'.
+Afterwards, it drops the 'row_number' column and orders the data in ascending order for the first column, and descending for the second.
+In this way, it obtains the n-most-frequent values of the second column and their frequence for each value of the first column.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>df</code></dt>
+<dd>The DataFrame over which we want to perform the operation</dd>
+<dt><strong><code>col_a</code></strong> :&ensp;<code>str</code></dt>
+<dd>The string column name on which we will partition over</dd>
+<dt><strong><code>col_b</code></strong> :&ensp;<code>str</code></dt>
+<dd>The string column name on which we will calculate the n-most-frequent values</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>DataFrame</code></dt>
+<dd>Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_n_most_frequent_for_columns(self, df, col_a, col_b):
+    &#39;&#39;&#39;
+    Receives a DataFrame and, grouping by the specified columns, calculates the number of rows for the second column.
+    After that, it performs a window function that assigns a row number over the first column (partition key) and orders it in descending order.
+    Then, it performs a filter operation and keeps only the values for the &#39;row_number&#39; column that are minor or equal to &#39;N&#39;.
+    Afterwards, it drops the &#39;row_number&#39; column and orders the data in ascending order for the first column, and descending for the second.
+    In this way, it obtains the n-most-frequent values of the second column and their frequence for each value of the first column.
+    
+    Args:
+        df (df): The DataFrame over which we want to perform the operation
+        col_a (str): The string column name on which we will partition over
+        col_b (str): The string column name on which we will calculate the n-most-frequent values
+    
+    Returns:
+        DataFrame: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
+    &#39;&#39;&#39;
+    try:
+        assert col_a in df.columns, f&#39;{col_a} is not present in the DataFrame columns.&#39;
+        assert col_b in df.columns, f&#39;{col_b} is not present in the DataFrame columns.&#39;
+    except AssertionError as ae:
+        raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+        
+    return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).drop(&#39;row_number&#39;).orderBy(F.asc(col_a), F.desc(col_b))</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_n_most_frequent_for_each_day"><code class="name flex">
+<span>def <span class="ident">get_n_most_frequent_for_each_day</span></span>(<span>self, sql_context, rdd, sampling_ratio=0.1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the n-most-frequent visitors and URLs for each day in the trace</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sql_context</code></strong> :&ensp;<code>SQLContext</code></dt>
+<dd>An instance of the SQLContext</dd>
+<dt><strong><code>rdd</code></strong> :&ensp;<code>RDD</code></dt>
+<dd>The RDD over which we want to perform the operation</dd>
+<dt><strong><code>sampling_ratio</code></strong> :&ensp;<code>float</code></dt>
+<dd>[optional - defaults to 0.1] The sampling ratio of selected rows over the total to infer the datatypes when creating the DataFrame</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>tuple(DataFrame, DataFrame): A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_n_most_frequent_for_each_day(self, sql_context, rdd, sampling_ratio = 0.1):
+    &#39;&#39;&#39;
+    Calculates the n-most-frequent visitors and URLs for each day in the trace
+    
+    Args:
+        sql_context (SQLContext): An instance of the SQLContext
+        rdd (RDD): The RDD over which we want to perform the operation
+        sampling_ratio (float): [optional - defaults to 0.1] The sampling ratio of selected rows over the total to infer the datatypes when creating the DataFrame
+    
+    Returns:
+        tuple(DataFrame, DataFrame): A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls
+    &#39;&#39;&#39;
+    # Create a dataframe out of a processed RDD and define the schema. Sampling ratio is needed to infer the datatypes
+    _df = sql_context.createDataFrame(rdd, schema = [&#39;host&#39;, &#39;identity_remote&#39;, &#39;identity_local&#39;, &#39;date&#39;, &#39;time&#39;, &#39;timezone&#39;, &#39;request_method&#39;, &#39;resource&#39;, &#39;protocol&#39;, &#39;status_code&#39;, &#39;bytes_returned&#39;], samplingRatio = sampling_ratio)
+    
+    most_frequent_visitors = self.get_n_most_frequent_for_columns(_df, &#39;date&#39;, &#39;host&#39;)
+    most_frequent_urls = self.get_n_most_frequent_for_columns(_df, &#39;date&#39;, &#39;resource&#39;)
+    
+    return (most_frequent_visitors, most_frequent_urls)</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_rdd_valid_lines"><code class="name flex">
+<span>def <span class="ident">get_rdd_valid_lines</span></span>(<span>self, rdd)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Receives a RDD and returns only the lines that are valid, according to the regex specifications</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>rdd</code></strong> :&ensp;<code>RDD</code></dt>
+<dd>The RDD over which we want to perform the operation</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>RDD</code></dt>
+<dd>Filtered RDD with only valid lines according to the regex provided</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_rdd_valid_lines(self, rdd):
+    &#39;&#39;&#39;
+    Receives a RDD and returns only the lines that are valid, according to the regex specifications
+    
+    Args:
+        rdd (RDD): The RDD over which we want to perform the operation
+    
+    Returns:
+        RDD: Filtered RDD with only valid lines according to the regex provided
+    &#39;&#39;&#39;
+    return rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: line[1]).map(lambda line: line[0])</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.map_log_line"><code class="name flex">
+<span>def <span class="ident">map_log_line</span></span>(<span>self, line)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cleansing function that will, out of a particular line, map it according to the regex groups</p>
+<h2 id="args">Args</h2>
+<p>line (?): Argument of a lambda expression performed over a RDD</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>A tuple containing the groups that match the regex expression</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def map_log_line(self, line):
+    &#39;&#39;&#39;
+    Cleansing function that will, out of a particular line, map it according to the regex groups
+    
+    Args:
+        line (?): Argument of a lambda expression performed over a RDD
+    
+    Returns:
+        tuple: A tuple containing the groups that match the regex expression
+    &#39;&#39;&#39;
+    match = re.search(self.regex, line)
+
+    return match.groups()</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.map_rdd"><code class="name flex">
+<span>def <span class="ident">map_rdd</span></span>(<span>self, rdd)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Receives a RDD and maps its lines to the regex groups specified</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>rdd</code></strong> :&ensp;<code>RDD</code></dt>
+<dd>The RDD over which we want to perform the operation</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>RDD</code></dt>
+<dd>Mapped RDD according to the regex groups specified</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def map_rdd(self, rdd):
+    &#39;&#39;&#39;
+    Receives a RDD and maps its lines to the regex groups specified
+    
+    Args:
+        rdd (RDD): The RDD over which we want to perform the operation
+    
+    Returns:
+        RDD: Mapped RDD according to the regex groups specified
+    &#39;&#39;&#39;
+    return rdd.map(lambda line: self.map_log_line(line))</code></pre>
+</details>
+</dd>
+<dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.read_source"><code class="name flex">
+<span>def <span class="ident">read_source</span></span>(<span>self, sc, source_name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads the source access logs and creates a Spark RDD out of it
+Assumes that the source data is coming in a format that the textFile function of SparkContext will be able to parse</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sc</code></strong> :&ensp;<code>SparkContext</code></dt>
+<dd>An instance of a SparkContext</dd>
+<dt><strong><code>source_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>URL or location of the dataset that we want to download</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>RDD</code></dt>
+<dd>A Spark RDD pointing to the access logs data</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_source(self, sc, source_name):
+    &#39;&#39;&#39;
+    Reads the source access logs and creates a Spark RDD out of it
+    Assumes that the source data is coming in a format that the textFile function of SparkContext will be able to parse
+    
+    Args:
+        sc (SparkContext): An instance of a SparkContext
+        source_name (str): URL or location of the dataset that we want to download
+    
+    Returns:
+        RDD: A Spark RDD pointing to the access logs data
+    &#39;&#39;&#39;
+    rdd = sc.textFile(source_name)
+    
+    return rdd</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jobs" href="index.html">jobs</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="jobs.nasa_access_logs_analyzer.init" href="#jobs.nasa_access_logs_analyzer.init">init</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer">AccessLogAnalyzer</a></code></h4>
+<ul class="">
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.calculate_cleansing_accuracy" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.calculate_cleansing_accuracy">calculate_cleansing_accuracy</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.check_log_line" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.check_log_line">check_log_line</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.create_spark_context" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.create_spark_context">create_spark_context</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.download_access_logs" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.download_access_logs">download_access_logs</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_n_most_frequent_for_columns" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_n_most_frequent_for_columns">get_n_most_frequent_for_columns</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_n_most_frequent_for_each_day" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_n_most_frequent_for_each_day">get_n_most_frequent_for_each_day</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_rdd_valid_lines" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_rdd_valid_lines">get_rdd_valid_lines</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.map_log_line" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.map_log_line">map_log_line</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.map_rdd" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.map_rdd">map_rdd</a></code></li>
+<li><code><a title="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.read_source" href="#jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.read_source">read_source</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
