@@ -49,6 +49,10 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
         self.assertIsInstance(access_log_analyzer, AccessLogAnalyzer, f'Expected AccessLogAnalyzer type and received {type(access_log_analyzer)} instead.')
+        
+    def test_instantiate_main_class_2(self):
+        with self.assertRaises(AssertionError):
+            AccessLogAnalyzer(n = 0, dataset_url = TestAccessLogsAnalyzer.dataset_url)
     
     def test_read_source_1(self):
         access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
@@ -66,6 +70,35 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         
         with self.assertRaises(Py4JJavaError):
             access_log_analyzer.read_source(self.sc, 'data/non_existing_file').collect()
+            
+    def test_check_log_line_1(self):
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
+        
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
+        
+        result = rdd.map(lambda line: access_log_analyzer.check_log_line(line)).collect()
+        
+        no_lines_expected = 10
+        
+        self.assertIsInstance(result, list, f'Expected list type and received {type(result)} instead.')
+        self.assertTrue(len(result) == no_lines_expected, f'Expected {no_lines_expected} lines and got {len(result)} instead.')
+        self.assertTrue(result[0][1], f'First line of the RDD should be a valid line.')
+        self.assertTrue(not result[-1][1], f'Last line of the RDD should be an invalid line.')
+        
+    def test_map_log_line_1(self):
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
+        
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
+        
+        rdd = rdd.map(lambda line: access_log_analyzer.check_log_line(line)).filter(lambda line: line[1]).map(lambda line: line[0])
+        
+        result = rdd.map(lambda line: access_log_analyzer.map_log_line(line)).collect()
+        
+        no_lines_expected = 9
+        
+        self.assertIsInstance(result, list, f'Expected list type and received {type(result)} instead.')
+        self.assertTrue(len(result) == no_lines_expected, f'Expected {no_lines_expected} lines and got {len(result)} instead.')
+        self.assertTrue(len(result[0]), f'Lines should have 11 groups and got {len(result[0])} instead.')
     
     def test_calculate_cleansing_accuracy_1(self):
         access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
@@ -119,7 +152,7 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         rdd = access_log_analyzer.get_rdd_valid_lines(rdd)
         rdd = access_log_analyzer.map_rdd(rdd)
         
-        result = access_log_analyzer.get_n_most_frequent_for_each_day(TestAccessLogsAnalyzer.sql_ctx, rdd)
+        result = access_log_analyzer.get_n_most_frequent_for_each_day(TestAccessLogsAnalyzer.sql_ctx, rdd, sampling_ratio = 0.5)
         
         result[0].show()
         

@@ -1,14 +1,14 @@
 '''
 This is a python coding challenge proposed by secureworks.
 The purpose of this job is to download an access log dataset from NASA and compute the
-K-most-frequent visitors and URLs for each day of the trace using Spark.
+n-most-frequent visitors and URLs for each day of the trace using Spark.
 
 @author     = 'Javier García Calvo'
 @version    = '1.0a'
 @maintainer = ['Javier García Calvo']
 @status     = 'Developing'
 @creation_date = 12/09/2021
-@last_modification = 13/09/2021
+@last_modification = 14/09/2021
 
 '''
 
@@ -47,7 +47,7 @@ class AccessLogAnalyzer():
             assert isinstance(kwargs['dataset_url'], str), 'The "dataset_url" parameter does not match the expected datatype (str)'
             assert re.match('^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$', kwargs['dataset_url']), 'The "dataset_url" parameter does not match a valid FTP URL'
         except AssertionError as ae:
-            self.logger.error(f'Assertion error: {ae}')
+            raise AssertionError(f'Assertion error: {ae}')
         
         # Assign external arguments to class attributes
         self.n = kwargs['n']
@@ -58,7 +58,7 @@ class AccessLogAnalyzer():
         
         self.logger.info(f'AccessLogAnalyzer class is ready!')
 
-    def create_spark_context(self):
+    def create_spark_context(self): # pragma: no cover
         '''
         Creates and returns an instance of the SparkContext and SQLContext
         
@@ -75,7 +75,7 @@ class AccessLogAnalyzer():
         
         return (sc, sql_context)
     
-    def download_access_logs(self):
+    def download_access_logs(self): # pragma: no cover
         '''
         Connects to the FTP repository provided in the arguments to this job, and downloads it
         
@@ -175,18 +175,18 @@ class AccessLogAnalyzer():
             assert col_a in df.columns, f'{col_a} is not present in the DataFrame columns.'
             assert col_b in df.columns, f'{col_b} is not present in the DataFrame columns.'
         except AssertionError as ae:
-            self.logger.error(f'Assertion error: {ae}')
+            raise AssertionError(f'Assertion error: {ae}')
             
         return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias('count')).withColumn('row_number', F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc('count')))).filter(F.col('row_number') <= self.n).drop('row_number').orderBy(F.asc(col_a), F.desc(col_b))
     
-    def get_n_most_frequent_for_each_day(self, sql_context, rdd):
+    def get_n_most_frequent_for_each_day(self, sql_context, rdd, sampling_ratio = 0.1):
         '''
         Calculates the n-most-frequent visitors and URLs for each day in the trace
         
         Returns: A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls
         '''
         # Create a dataframe out of a processed RDD and define the schema. Sampling ratio is needed to infer the datatypes
-        _df = sql_context.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = 0.2)
+        _df = sql_context.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = sampling_ratio)
         
         most_frequent_visitors = self.get_n_most_frequent_for_columns(_df, 'date', 'host')
         most_frequent_urls = self.get_n_most_frequent_for_columns(_df, 'date', 'resource')
@@ -222,5 +222,5 @@ def init(args): # pragma: no cover
     
     return (most_frequent_visitors, most_frequent_urls)
 
-if __name__== "__main__" :
+if __name__== "__main__" : # pragma: no cover
     init(getResolvedOptions(sys.argv, ['k', 'dataset_url']))
