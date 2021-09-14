@@ -22,6 +22,10 @@ script:
 - coverage xml
 - cd ..
 - pwd
+- ls -la
+- ls -la test/
+- ls -la /home/travis/build/jjxp/access-log-analyzer/test
+- cat test/coverage.xml
 - sonar-scanner
 
 addons:
