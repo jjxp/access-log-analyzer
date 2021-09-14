@@ -4,10 +4,15 @@ The purpose of this job is to download an access log dataset from NASA and compu
 n-most-frequent visitors and URLs for each day of the trace using Spark.
 
 @author     = 'Javier García Calvo'
+
 @version    = '1.0a'
+
 @maintainer = ['Javier García Calvo']
+
 @status     = 'Developing'
+
 @creation_date = 12/09/2021
+
 @last_modification = 14/09/2021
 
 '''
@@ -33,7 +38,7 @@ class AccessLogAnalyzer():
     
     Args:
         n (int): integer, greater than zero, that will indicate how many most-frequent distinct values we want to obtain as a result
-        dataset_url (string): URL of the dataset that we want to download
+        dataset_url (str): URL of the dataset that we want to download
     '''
     def __init__(self, **kwargs):
         # Define a logger
@@ -62,7 +67,8 @@ class AccessLogAnalyzer():
         '''
         Creates and returns an instance of the SparkContext and SQLContext
         
-        Returns: Tuple containing SparkContext and SQLContext
+        Returns:
+            tuple(SparkContext, SQLContext): Tuple containing SparkContext and SQLContext
         '''
         findspark.init()
 
@@ -79,7 +85,8 @@ class AccessLogAnalyzer():
         '''
         Connects to the FTP repository provided in the arguments to this job, and downloads it
         
-        Returns: String value of the downloaded filename
+        Returns:
+            str: String value of the downloaded filename
         '''
         # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
         access_log_name = self.dataset_url.split('/')[1]
@@ -95,7 +102,12 @@ class AccessLogAnalyzer():
         Reads the source access logs and creates a Spark RDD out of it
         Assumes that the source data is coming in a format that the textFile function of SparkContext will be able to parse
         
-        Returns: A Spark RDD pointing to the access logs data
+        Args:
+            sc (SparkContext): An instance of a SparkContext
+            source_name (str): URL or location of the dataset that we want to download
+        
+        Returns:
+            RDD: A Spark RDD pointing to the access logs data
         '''
         rdd = sc.textFile(source_name)
         
@@ -105,7 +117,11 @@ class AccessLogAnalyzer():
         '''
         Checks whether, out of a particular line, the validity (regex compliance) of such line
         
-        Returns: A tuple that will contain the line and a boolean that indicates whether the line is valid or not
+        Args:
+            line (?): Argument of a lambda expression performed over a RDD
+        
+        Returns:
+            tuple(?, bool): A tuple that will contain the line and a boolean that indicates whether the line is valid or not
         '''
         match = re.search(self.regex, line)
 
@@ -118,7 +134,11 @@ class AccessLogAnalyzer():
         '''
         Cleansing function that will, out of a particular line, map it according to the regex groups
         
-        Returns: The regex groups
+        Args:
+            line (?): Argument of a lambda expression performed over a RDD
+        
+        Returns:
+            tuple: A tuple containing the groups that match the regex expression
         '''
         match = re.search(self.regex, line)
 
@@ -126,10 +146,15 @@ class AccessLogAnalyzer():
     
     def calculate_cleansing_accuracy(self, rdd):
         '''
-        Obtains a datetime object out of a particular string format
-        Assumes that the date format is %d/%b/%Y:%H:%M:%S %z
+        Calculates the accuracy of the cleansing process performed over the source data.
+        Accuracy is calculated with the following expression: (100 - (failed_lines / total_lines * 100)).
+        It indicates the percentage of lines that the job has been able to parse successfully.
         
-        Returns: Float number of the cleansing accuracy
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            float: Float number for the cleansing accuracy
         '''
         # Obtain the total number of lines
         _total_no_lines = rdd.count()
@@ -149,7 +174,11 @@ class AccessLogAnalyzer():
         '''
         Receives a RDD and returns only the lines that are valid, according to the regex specifications
         
-        Returns: Filtered RDD with only valid lines according to the regex provided
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            RDD: Filtered RDD with only valid lines according to the regex provided
         '''
         return rdd.map(lambda line: self.check_log_line(line)).filter(lambda line: line[1]).map(lambda line: line[0])
     
@@ -157,7 +186,11 @@ class AccessLogAnalyzer():
         '''
         Receives a RDD and maps its lines to the regex groups specified
         
-        Returns: Mapped RDD according to the regex groups specified
+        Args:
+            rdd (RDD): The RDD over which we want to perform the operation
+        
+        Returns:
+            RDD: Mapped RDD according to the regex groups specified
         '''
         return rdd.map(lambda line: self.map_log_line(line))
     
@@ -169,7 +202,13 @@ class AccessLogAnalyzer():
         Afterwards, it drops the 'row_number' column and orders the data in ascending order for the first column, and descending for the second.
         In this way, it obtains the n-most-frequent values of the second column and their frequence for each value of the first column.
         
-        Returns: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
+        Args:
+            df (df): The DataFrame over which we want to perform the operation
+            col_a (str): The string column name on which we will partition over
+            col_b (str): The string column name on which we will calculate the n-most-frequent values
+        
+        Returns:
+            DataFrame: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
         '''
         try:
             assert col_a in df.columns, f'{col_a} is not present in the DataFrame columns.'
@@ -183,7 +222,13 @@ class AccessLogAnalyzer():
         '''
         Calculates the n-most-frequent visitors and URLs for each day in the trace
         
-        Returns: A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls
+        Args:
+            sql_context (SQLContext): An instance of the SQLContext
+            rdd (RDD): The RDD over which we want to perform the operation
+            sampling_ratio (float): [optional - defaults to 0.1] The sampling ratio of selected rows over the total to infer the datatypes when creating the DataFrame
+        
+        Returns:
+            tuple(DataFrame, DataFrame): A tuple containing first a DataFrame with the n most frequent visitors, and a second with the n most frequent urls
         '''
         # Create a dataframe out of a processed RDD and define the schema. Sampling ratio is needed to infer the datatypes
         _df = sql_context.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = sampling_ratio)
