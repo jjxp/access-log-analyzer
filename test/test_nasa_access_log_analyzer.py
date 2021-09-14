@@ -38,19 +38,22 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         TestAccessLogsAnalyzer.sc = cls.sc
         TestAccessLogsAnalyzer.sql_ctx = SQLContext(cls.sc)
 
+        TestAccessLogsAnalyzer.dataset_url = 'sftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz'
+        TestAccessLogsAnalyzer.source_data_path = 'data/sample_data'
+
     @classmethod
     def tearDownClass(cls):
         cls.sc.stop()
     
     def test_instantiate_main_class_1(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
         self.assertIsInstance(access_log_analyzer, AccessLogAnalyzer, f'Expected AccessLogAnalyzer type and received {type(access_log_analyzer)} instead.')
     
     def test_read_source_1(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
-        result = access_log_analyzer.read_source(self.sc, 'data/sample_data')
+        result = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
         
         no_lines = result.count()
         no_lines_expected = 10
@@ -59,15 +62,15 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertEqual(no_lines, no_lines_expected, f'Expected {no_lines_expected} lines to be read and got {no_lines} instead.')
         
     def test_read_source_2(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
         with self.assertRaises(Py4JJavaError):
             access_log_analyzer.read_source(self.sc, 'data/non_existing_file').collect()
     
     def test_calculate_cleansing_accuracy_1(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
-        rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
         
         result = access_log_analyzer.calculate_cleansing_accuracy(rdd)
         result_expected = 100 - (1 / 10 * 100)
@@ -75,9 +78,9 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertEqual(result, result_expected, f'Expected an accuracy of {result_expected} and got {result} instead.')
     
     def test_get_rdd_valid_lines_1(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
-        rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
         
         no_lines = access_log_analyzer.get_rdd_valid_lines(rdd).count()
         no_lines_expected = 9
@@ -85,9 +88,9 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertEqual(no_lines, no_lines_expected, f'Expected {no_lines_expected} lines to be read and got {no_lines} instead.')
         
     def test_map_rdd_1(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
-        rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
         rdd = access_log_analyzer.get_rdd_valid_lines(rdd)
         
         result = access_log_analyzer.map_rdd(rdd)
@@ -102,17 +105,17 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertTrue(no_groups_bool, f'All tuples must have a length of {no_groups_expected}.')
     
     def test_map_rdd_2(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
-        rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
         
         with self.assertRaises(Py4JJavaError):
-            result = access_log_analyzer.map_rdd(rdd).collect()
+            access_log_analyzer.map_rdd(rdd).collect()
             
     def test_get_n_most_frequent_for_each_day_1(self):
-        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = 'ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz')
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
-        rdd = access_log_analyzer.read_source(self.sc, 'data/sample_data')
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
         rdd = access_log_analyzer.get_rdd_valid_lines(rdd)
         rdd = access_log_analyzer.map_rdd(rdd)
         

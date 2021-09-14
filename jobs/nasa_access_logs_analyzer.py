@@ -45,7 +45,7 @@ class AccessLogAnalyzer():
             assert isinstance(kwargs['n'], int), 'The "n" parameter does not match the expected datatype (int)'
             assert kwargs['n'] > 0, 'The "n" parameter must be greater than zero'
             assert isinstance(kwargs['dataset_url'], str), 'The "dataset_url" parameter does not match the expected datatype (str)'
-            assert re.match('^(ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$', kwargs['dataset_url']), 'The "dataset_url" parameter does not match a valid FTP URL'
+            assert re.match('^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$', kwargs['dataset_url']), 'The "dataset_url" parameter does not match a valid FTP URL'
         except AssertionError as ae:
             self.logger.error(f'Assertion error: {ae}')
         
@@ -58,7 +58,7 @@ class AccessLogAnalyzer():
         
         self.logger.info(f'AccessLogAnalyzer class is ready!')
 
-    def create_spark_context():
+    def create_spark_context(self):
         '''
         Creates and returns an instance of the SparkContext and SQLContext
         
@@ -193,7 +193,7 @@ class AccessLogAnalyzer():
         
         return (most_frequent_visitors, most_frequent_urls)
     
-def init(args):
+def init(args): # pragma: no cover
     # Start off by creating an instance of the AccessLogAnalyzer class, passing the sys arguments as a parameter
     log_analyzer = AccessLogAnalyzer(args)
     
