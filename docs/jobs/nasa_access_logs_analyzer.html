@@ -30,7 +30,7 @@ n-most-frequent visitors and URLs for each day of the trace using Spark.</p>
 <p>@author
 = 'Javier García Calvo'</p>
 <p>@version
-= '1.0a'</p>
+= '1.0b'</p>
 <p>@maintainer = ['Javier García Calvo']</p>
 <p>@status
 = 'Developing'</p>
@@ -47,7 +47,7 @@ n-most-frequent visitors and URLs for each day of the trace using Spark.
 
 @author     = &#39;Javier García Calvo&#39;
 
-@version    = &#39;1.0a&#39;
+@version    = &#39;1.0b&#39;
 
 @maintainer = [&#39;Javier García Calvo&#39;]
 
@@ -60,6 +60,7 @@ n-most-frequent visitors and URLs for each day of the trace using Spark.
 &#39;&#39;&#39;
 
 # Import all required dependencies
+import sys
 import re
 import logging
 import shutil
@@ -71,6 +72,7 @@ import findspark
 from pyspark import SparkConf
 from pyspark import SparkContext
 from pyspark.sql import SQLContext
+from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
 import pyspark.sql.functions as F
 
@@ -102,7 +104,7 @@ class AccessLogAnalyzer():
         
         # Regex for cleaning and extracting groups from the logs
         self.regex = &#39;^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] &#34;(\S+) (\S+)\s*(\S+)?\s*&#34; (\d{3}) (\S+)&#39;
-        
+
         self.logger.info(f&#39;AccessLogAnalyzer class is ready!&#39;)
 
     def create_spark_context(self): # pragma: no cover
@@ -114,11 +116,13 @@ class AccessLogAnalyzer():
         &#39;&#39;&#39;
         findspark.init()
 
-        conf = SparkConf()
-        conf.setAppName(&#39;nasa-access-log-analyzer&#39;)
-        conf.setMaster(&#39;local&#39;)
-
-        sc = SparkContext(conf=conf)
+        spark = SparkSession.builder.master(&#39;local&#39;).\
+        appName(&#39;nasa-access-log-analyzer&#39;).\
+        config(&#39;spark.driver.bindAddress&#39;, &#39;localhost&#39;).\
+        config(&#39;spark.ui.port&#39;, &#39;4050&#39;).\
+        getOrCreate()
+        
+        sc = spark.sparkContext
         sql_context = SQLContext(sc)
         
         return (sc, sql_context)
@@ -131,7 +135,7 @@ class AccessLogAnalyzer():
             str: String value of the downloaded filename
         &#39;&#39;&#39;
         # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
-        access_log_name = self.dataset_url.split(&#39;/&#39;)[1]
+        access_log_name = self.dataset_url.split(&#39;/&#39;)[-1]
         
         with closing(request.urlopen(self.dataset_url)) as r:
             with open(access_log_name, &#39;wb&#39;) as f:
@@ -279,59 +283,10 @@ class AccessLogAnalyzer():
         most_frequent_urls = self.get_n_most_frequent_for_columns(_df, &#39;date&#39;, &#39;resource&#39;)
         
         return (most_frequent_visitors, most_frequent_urls)
-    
-def init(args): # pragma: no cover
-    # Start off by creating an instance of the AccessLogAnalyzer class, passing the sys arguments as a parameter
-    log_analyzer = AccessLogAnalyzer(args)
-    
-    # Download the logs
-    logs_name = log_analyzer.download_access_logs()
-    
-    # Create the Spark Context and SQLContext
-    (sc, sql_context) = log_analyzer.create_spark_context()
-    
-    # Read the source data
-    rdd = log_analyzer.read_source(sc, logs_name)
-    
-    # Calculate the cleansing accuracy of the process
-    log_analyzer.calculate_cleansing_accuracy(rdd)
-    
-    # Filter the RDD and get only the valid lines that match the regex pattern
-    rdd = log_analyzer.get_rdd_valid_lines(rdd)
-    
-    # Map the RDD and obtain groups from each line
-    rdd = log_analyzer.map_rdd(rdd)
-    
-    # Get the most frequent visitors and urls for each day of the trace
-    (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_n_most_frequent_for_each_day(sql_context, rdd)
-    
-    sc.stop()
-    
-    return (most_frequent_visitors, most_frequent_urls)
 
 if __name__== &#34;__main__&#34; : # pragma: no cover
-    init(getResolvedOptions(sys.argv, [&#39;k&#39;, &#39;dataset_url&#39;]))</code></pre>
-</details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="jobs.nasa_access_logs_analyzer.init"><code class="name flex">
-<span>def <span class="ident">init</span></span>(<span>args)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def init(args): # pragma: no cover
     # Start off by creating an instance of the AccessLogAnalyzer class, passing the sys arguments as a parameter
-    log_analyzer = AccessLogAnalyzer(args)
+    log_analyzer = AccessLogAnalyzer(n = int(sys.argv[1]), dataset_url = sys.argv[2])
     
     # Download the logs
     logs_name = log_analyzer.download_access_logs()
@@ -353,13 +308,18 @@ if __name__== &#34;__main__&#34; : # pragma: no cover
     
     # Get the most frequent visitors and urls for each day of the trace
     (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_n_most_frequent_for_each_day(sql_context, rdd)
+
+    most_frequent_visitors.coalesce(1).write.csv(f&#39;{log_analyzer.n}_most_frequent_visitors.csv&#39;)
+    most_frequent_urls.coalesce(1).write.csv(f&#39;{log_analyzer.n}_most_frequent_urls.csv&#39;)
     
-    sc.stop()
-    
-    return (most_frequent_visitors, most_frequent_urls)</code></pre>
+    sc.stop()</code></pre>
 </details>
-</dd>
-</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -409,7 +369,7 @@ if __name__== &#34;__main__&#34; : # pragma: no cover
         
         # Regex for cleaning and extracting groups from the logs
         self.regex = &#39;^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] &#34;(\S+) (\S+)\s*(\S+)?\s*&#34; (\d{3}) (\S+)&#39;
-        
+
         self.logger.info(f&#39;AccessLogAnalyzer class is ready!&#39;)
 
     def create_spark_context(self): # pragma: no cover
@@ -421,11 +381,13 @@ if __name__== &#34;__main__&#34; : # pragma: no cover
         &#39;&#39;&#39;
         findspark.init()
 
-        conf = SparkConf()
-        conf.setAppName(&#39;nasa-access-log-analyzer&#39;)
-        conf.setMaster(&#39;local&#39;)
-
-        sc = SparkContext(conf=conf)
+        spark = SparkSession.builder.master(&#39;local&#39;).\
+        appName(&#39;nasa-access-log-analyzer&#39;).\
+        config(&#39;spark.driver.bindAddress&#39;, &#39;localhost&#39;).\
+        config(&#39;spark.ui.port&#39;, &#39;4050&#39;).\
+        getOrCreate()
+        
+        sc = spark.sparkContext
         sql_context = SQLContext(sc)
         
         return (sc, sql_context)
@@ -438,7 +400,7 @@ if __name__== &#34;__main__&#34; : # pragma: no cover
             str: String value of the downloaded filename
         &#39;&#39;&#39;
         # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
-        access_log_name = self.dataset_url.split(&#39;/&#39;)[1]
+        access_log_name = self.dataset_url.split(&#39;/&#39;)[-1]
         
         with closing(request.urlopen(self.dataset_url)) as r:
             with open(access_log_name, &#39;wb&#39;) as f:
@@ -688,11 +650,13 @@ It indicates the percentage of lines that the job has been able to parse success
     &#39;&#39;&#39;
     findspark.init()
 
-    conf = SparkConf()
-    conf.setAppName(&#39;nasa-access-log-analyzer&#39;)
-    conf.setMaster(&#39;local&#39;)
-
-    sc = SparkContext(conf=conf)
+    spark = SparkSession.builder.master(&#39;local&#39;).\
+    appName(&#39;nasa-access-log-analyzer&#39;).\
+    config(&#39;spark.driver.bindAddress&#39;, &#39;localhost&#39;).\
+    config(&#39;spark.ui.port&#39;, &#39;4050&#39;).\
+    getOrCreate()
+    
+    sc = spark.sparkContext
     sql_context = SQLContext(sc)
     
     return (sc, sql_context)</code></pre>
@@ -720,7 +684,7 @@ It indicates the percentage of lines that the job has been able to parse success
         str: String value of the downloaded filename
     &#39;&#39;&#39;
     # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
-    access_log_name = self.dataset_url.split(&#39;/&#39;)[1]
+    access_log_name = self.dataset_url.split(&#39;/&#39;)[-1]
     
     with closing(request.urlopen(self.dataset_url)) as r:
         with open(access_log_name, &#39;wb&#39;) as f:
@@ -970,11 +934,6 @@ Assumes that the source data is coming in a format that the textFile function of
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="jobs" href="index.html">jobs</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="jobs.nasa_access_logs_analyzer.init" href="#jobs.nasa_access_logs_analyzer.init">init</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

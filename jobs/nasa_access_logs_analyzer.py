@@ -5,7 +5,7 @@ n-most-frequent visitors and URLs for each day of the trace using Spark.
 
 @author     = 'Javier García Calvo'
 
-@version    = '1.0a'
+@version    = '1.0b'
 
 @maintainer = ['Javier García Calvo']
 
@@ -62,7 +62,7 @@ class AccessLogAnalyzer():
         
         # Regex for cleaning and extracting groups from the logs
         self.regex = '^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
-        
+
         self.logger.info(f'AccessLogAnalyzer class is ready!')
 
     def create_spark_context(self): # pragma: no cover
