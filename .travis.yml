@@ -19,13 +19,8 @@ install:
 script:
 - cd test/
 - coverage run -m unittest discover
-- coverage xml
+- coverage xml -o ../coverage-reports/coverage-results.xml
 - cd ..
-- pwd
-- ls -la
-- ls -la test/
-- ls -la /home/travis/build/jjxp/access-log-analyzer/test
-- cat test/coverage.xml
 - sonar-scanner
 
 addons:
