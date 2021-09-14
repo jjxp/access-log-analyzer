@@ -61,18 +61,7 @@ class AccessLogAnalyzer():
         self.dataset_url = kwargs['dataset_url']
         
         # Regex for cleaning and extracting groups from the logs
-        host = '^(\S+) '
-        identity_remote = '(\S+) '
-        identity_local = '(\S+) '
-        date = '\[([\w/]+)'
-        time = '([:\d]+) '
-        timezone = '([+\-]\d{4})\] "'
-        request_method = '(\S+) '
-        resource = '(\S+) '
-        protocol = '*(\S+)?\s*"'
-        status_code = '(\d{3}) '
-        bytes_returned = '(\S+)'
-        self.regex = host + identity_remote + identity_local + date + time + timezone + request_method + resource + protocol + status_code + bytes_returned
+        self.regex = '^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
         
         self.logger.info(f'AccessLogAnalyzer class is ready!')
 
