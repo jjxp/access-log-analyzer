@@ -18,6 +18,7 @@ n-most-frequent visitors and URLs for each day of the trace using Spark.
 '''
 
 # Import all required dependencies
+import sys
 import re
 import logging
 import shutil
@@ -29,6 +30,7 @@ import findspark
 from pyspark import SparkConf
 from pyspark import SparkContext
 from pyspark.sql import SQLContext
+from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
 import pyspark.sql.functions as F
 
@@ -59,7 +61,18 @@ class AccessLogAnalyzer():
         self.dataset_url = kwargs['dataset_url']
         
         # Regex for cleaning and extracting groups from the logs
-        self.regex = '^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
+        host = '^(\S+) '
+        identity_remote = '(\S+) '
+        identity_local = '(\S+) '
+        date = '\[([\w/]+)'
+        time = '([:\d]+) '
+        timezone = '([+\-]\d{4})\] "'
+        request_method = '(\S+) '
+        resource = '(\S+) '
+        protocol = '*(\S+)?\s*"'
+        status_code = '(\d{3}) '
+        bytes_returned = '(\S+)'
+        self.regex = host + identity_remote + identity_local + date + time + timezone + request_method + resource + protocol + status_code + bytes_returned
         
         self.logger.info(f'AccessLogAnalyzer class is ready!')
 
@@ -72,11 +85,13 @@ class AccessLogAnalyzer():
         '''
         findspark.init()
 
-        conf = SparkConf()
-        conf.setAppName('nasa-access-log-analyzer')
-        conf.setMaster('local')
-
-        sc = SparkContext(conf=conf)
+        spark = SparkSession.builder.master('local').\
+        appName('nasa-access-log-analyzer').\
+        config('spark.driver.bindAddress', 'localhost').\
+        config('spark.ui.port', '4050').\
+        getOrCreate()
+        
+        sc = spark.sparkContext
         sql_context = SQLContext(sc)
         
         return (sc, sql_context)
@@ -89,7 +104,7 @@ class AccessLogAnalyzer():
             str: String value of the downloaded filename
         '''
         # Retrieve the access log name, getting the last part of the URL (already verified with a regex)
-        access_log_name = self.dataset_url.split('/')[1]
+        access_log_name = self.dataset_url.split('/')[-1]
         
         with closing(request.urlopen(self.dataset_url)) as r:
             with open(access_log_name, 'wb') as f:
@@ -237,10 +252,10 @@ class AccessLogAnalyzer():
         most_frequent_urls = self.get_n_most_frequent_for_columns(_df, 'date', 'resource')
         
         return (most_frequent_visitors, most_frequent_urls)
-    
-def init(args): # pragma: no cover
+
+if __name__== "__main__" : # pragma: no cover
     # Start off by creating an instance of the AccessLogAnalyzer class, passing the sys arguments as a parameter
-    log_analyzer = AccessLogAnalyzer(args)
+    log_analyzer = AccessLogAnalyzer(n = int(sys.argv[1]), dataset_url = sys.argv[2])
     
     # Download the logs
     logs_name = log_analyzer.download_access_logs()
@@ -262,10 +277,8 @@ def init(args): # pragma: no cover
     
     # Get the most frequent visitors and urls for each day of the trace
     (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_n_most_frequent_for_each_day(sql_context, rdd)
+
+    most_frequent_visitors.coalesce(1).write.csv(f'{log_analyzer.n}_most_frequent_visitors.csv')
+    most_frequent_urls.coalesce(1).write.csv(f'{log_analyzer.n}_most_frequent_urls.csv')
     
     sc.stop()
-    
-    return (most_frequent_visitors, most_frequent_urls)
-
-if __name__== "__main__" : # pragma: no cover
-    init(getResolvedOptions(sys.argv, ['k', 'dataset_url']))
