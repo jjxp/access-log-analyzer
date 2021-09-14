@@ -30,14 +30,18 @@ pip install -r requirements.txt
 ```
 
 - Run the program
+
 _n: Number of most-frequent visitors/hosts that you want to calculate_
+
 _dataset_url: FTP URL for the dataset that you want to download (ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz)_
 ```
 python jobs/nasa_access_logs_analyzer.py {{n}} {{dataset_url}}
 ```
 
 - Check your results in the generated folders under your current directory:
+
 {{n}}\_most\_frequent_visitors.csv
+
 {{n}}\_most\_frequent_urls.csv
 
 ### Docker
@@ -55,8 +59,11 @@ docker build -t access-log-analyzer .
 ```
 
 - Run the program
+
 _pwd: Your working directory (%cd% in Windows cmd, ${PWD} in Windows PowerShell and ${pwd} in Linux_
+
 _n: Number of most-frequent visitors/hosts that you want to calculate_
+
 _dataset_url: FTP URL for the dataset that you want to download (ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz)_
 ```
 docker run -p4050:4050 -v {{pwd}}:/opt/application access-log-analyzer driver local:///opt/application/jobs/nasa_access_logs_analyzer.py {{n}} {{dataset_url}}
@@ -66,5 +73,7 @@ In the previous command, you'll notice that:
 - A volume is defined, which will allow you to access the output CSV files of the job.
 
 At last, you can check your results in the generated folders under your current directory:
+
 {{n}}\_most\_frequent_visitors.csv
+
 {{n}}\_most\_frequent_urls.csv
