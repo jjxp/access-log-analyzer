@@ -145,6 +145,18 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         with self.assertRaises(Py4JJavaError):
             access_log_analyzer.map_rdd(rdd).collect()
             
+    def test_get_n_most_frequent_for_columns_1(self):
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
+        
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
+        rdd = access_log_analyzer.get_rdd_valid_lines(rdd)
+        rdd = access_log_analyzer.map_rdd(rdd)
+        
+        df = TestAccessLogsAnalyzer.sql_ctx.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = 0.5)
+        
+        with self.assertRaises(AssertionError):
+            access_log_analyzer.get_n_most_frequent_for_columns(df, 'non_existing_column', 'resource')
+            
     def test_get_n_most_frequent_for_each_day_1(self):
         access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
         
