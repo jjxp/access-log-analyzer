@@ -218,7 +218,7 @@ class AccessLogAnalyzer():
         Receives a DataFrame and, grouping by the specified columns, calculates the number of rows for the second column.
         After that, it performs a window function that assigns a row number over the first column (partition key) and orders it in descending order.
         Then, it performs a filter operation and keeps only the values for the 'row_number' column that are minor or equal to 'N'.
-        Afterwards, it drops the 'row_number' column and orders the data in ascending order for the first column, and descending for the second.
+        Afterwards, it orders the data in ascending order for the first column and 'row_number' column. Then, it drops the 'row_number' column.
         In this way, it obtains the n-most-frequent values of the second column and their frequence for each value of the first column.
         
         Args:
