@@ -107,3 +107,26 @@ Taking into account the requirements, I have assumed the following points:
 - The program will not be executed in an external Spark cluster. I have chosen to package Spark and the Python application in the same container and run it in local mode because (1) it's too little data (around 20mb) and (2) it will be a lot easier to get the application running. For sure this is not a scenario that you will see in a Production environment, but it's great for this exercise's purpose.
 
 If we wanted to run the program in a real cluster, we would only package the Python code in a single image without any Spark binaries. Instead, the Spark cluster will be already set up (or we could set it up, for instance using Amazon EMR or the big-data-europe templates available [here](https://github.com/big-data-europe/docker-spark)) and the application images would be tagged and pushed to a repository that connects directly to Spark.
+
+## Output sample
+
+Here, you can see a subset for the three first days of the results for the 5-most-frequent hosts after executing the program:
+
+|   |                             |      |
+|---|-----------------------------|------|
+|01/Jul/1995|piweba3y.prodigy.com         |623   |
+|01/Jul/1995|piweba4y.prodigy.com         |547   |
+|01/Jul/1995|alyssa.prodigy.com           |536   |
+|01/Jul/1995|disarray.demon.co.uk         |463   |
+|01/Jul/1995|piweba1y.prodigy.com         |456   |
+|02/Jul/1995|piweba3y.prodigy.com         |960   |
+|02/Jul/1995|alyssa.prodigy.com           |578   |
+|02/Jul/1995|piweba1y.prodigy.com         |432   |
+|02/Jul/1995|disarray.demon.co.uk         |366   |
+|02/Jul/1995|www-d4.proxy.aol.com         |343   |
+|03/Jul/1995|piweba3y.prodigy.com         |1067  |
+|03/Jul/1995|134.83.184.18                |413   |
+|03/Jul/1995|alyssa.prodigy.com           |368   |
+|03/Jul/1995|news.ti.com                  |340   |
+|03/Jul/1995|www-b6.proxy.aol.com         |311   |
+
