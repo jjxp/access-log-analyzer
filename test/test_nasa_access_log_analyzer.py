@@ -51,7 +51,7 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertIsInstance(access_log_analyzer, AccessLogAnalyzer, f'Expected AccessLogAnalyzer type and received {type(access_log_analyzer)} instead.')
         
     def test_instantiate_main_class_2(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             AccessLogAnalyzer(n = 0, dataset_url = TestAccessLogsAnalyzer.dataset_url)
     
     def test_read_source_1(self):
@@ -154,7 +154,7 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         
         df = TestAccessLogsAnalyzer.sql_ctx.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = 0.5)
         
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             access_log_analyzer.get_n_most_frequent_for_columns(df, 'non_existing_column', 'resource')
             
     def test_get_n_most_frequent_for_each_day_1(self):

@@ -30,12 +30,12 @@ n-most-frequent visitors and URLs for each day of the trace using Spark.</p>
 <p>@author
 = 'Javier García Calvo'</p>
 <p>@version
-= '1.0b'</p>
+= '1.0'</p>
 <p>@maintainer = ['Javier García Calvo']</p>
 <p>@status
-= 'Developing'</p>
+= 'Stable'</p>
 <p>@creation_date = 12/09/2021</p>
-<p>@last_modification = 14/09/2021</p>
+<p>@last_modification = 15/09/2021</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -47,15 +47,15 @@ n-most-frequent visitors and URLs for each day of the trace using Spark.
 
 @author     = &#39;Javier García Calvo&#39;
 
-@version    = &#39;1.0b&#39;
+@version    = &#39;1.0&#39;
 
 @maintainer = [&#39;Javier García Calvo&#39;]
 
-@status     = &#39;Developing&#39;
+@status     = &#39;Stable&#39;
 
 @creation_date = 12/09/2021
 
-@last_modification = 14/09/2021
+@last_modification = 15/09/2021
 
 &#39;&#39;&#39;
 
@@ -90,20 +90,35 @@ class AccessLogAnalyzer():
         self.logger = logging.getLogger(&#39;access_log_analyzer&#39;)
         
         # Perform checks to test whether the parameters have the expected values
-        try:
-            assert isinstance(kwargs[&#39;n&#39;], int), &#39;The &#34;n&#34; parameter does not match the expected datatype (int)&#39;
-            assert kwargs[&#39;n&#39;] &gt; 0, &#39;The &#34;n&#34; parameter must be greater than zero&#39;
-            assert isinstance(kwargs[&#39;dataset_url&#39;], str), &#39;The &#34;dataset_url&#34; parameter does not match the expected datatype (str)&#39;
-            assert re.match(&#39;^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$&#39;, kwargs[&#39;dataset_url&#39;]), &#39;The &#34;dataset_url&#34; parameter does not match a valid FTP URL&#39;
-        except AssertionError as ae:
-            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+        if not type(kwargs[&#39;n&#39;]) == int:
+            raise ValueError(&#39;The &#34;n&#34; parameter does not match the expected datatype (int)&#39;)
+        
+        if not kwargs[&#39;n&#39;] &gt; 0:
+            raise ValueError(&#39;The &#34;n&#34; parameter must be greater than zero&#39;)
+        
+        if not type(kwargs[&#39;dataset_url&#39;]) == str:
+            raise ValueError(&#39;The &#34;dataset_url&#34; parameter does not match the expected datatype (str)&#39;)
+        
+        if not re.match(&#39;^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$&#39;, kwargs[&#39;dataset_url&#39;]):
+            raise ValueError(&#39;The &#34;dataset_url&#34; parameter does not match a valid FTP URL&#39;)
         
         # Assign external arguments to class attributes
         self.n = kwargs[&#39;n&#39;]
         self.dataset_url = kwargs[&#39;dataset_url&#39;]
         
         # Regex for cleaning and extracting groups from the logs
-        self.regex = &#39;^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] &#34;(\S+) (\S+)\s*(\S+)?\s*&#34; (\d{3}) (\S+)&#39;
+        host = &#39;^(\S+) &#39;
+        identity_remote = &#39;(\S+) &#39;
+        identity_local = &#39;(\S+) &#39;
+        date = &#39;\[([\w/]+)&#39;
+        hour = &#39;([:\d]+) &#39;
+        timezone = &#39;([+\-]\d{4})\] &#34;&#39;
+        request_method = &#39;(\S+) &#39;
+        resource = &#39;(\S+) *&#39;
+        protocol = &#39;(\S+)? *&#34; &#39;
+        status_code = &#39;(\d{3}) &#39;
+        bytes_returned = &#39;(\S+)&#39;
+        self.regex = host + identity_remote + identity_local + date + hour + timezone + request_method + resource + protocol + status_code + bytes_returned
 
         self.logger.info(f&#39;AccessLogAnalyzer class is ready!&#39;)
 
@@ -256,13 +271,13 @@ class AccessLogAnalyzer():
         Returns:
             DataFrame: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
         &#39;&#39;&#39;
-        try:
-            assert col_a in df.columns, f&#39;{col_a} is not present in the DataFrame columns.&#39;
-            assert col_b in df.columns, f&#39;{col_b} is not present in the DataFrame columns.&#39;
-        except AssertionError as ae:
-            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+        if not col_a in df.columns:
+            raise ValueError(f&#39;{col_a} is not present in the DataFrame columns.&#39;)
+        
+        if not col_b in df.columns:
+            raise ValueError(f&#39;{col_b} is not present in the DataFrame columns.&#39;)
             
-        return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).drop(&#39;row_number&#39;).orderBy(F.asc(col_a), F.desc(col_b))
+        return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).orderBy(F.asc(col_a), F.asc(&#39;row_number&#39;)).drop(&#39;row_number&#39;)
     
     def get_n_most_frequent_for_each_day(self, sql_context, rdd, sampling_ratio = 0.1):
         &#39;&#39;&#39;
@@ -309,6 +324,7 @@ if __name__== &#34;__main__&#34; : # pragma: no cover
     # Get the most frequent visitors and urls for each day of the trace
     (most_frequent_visitors, most_frequent_urls) = log_analyzer.get_n_most_frequent_for_each_day(sql_context, rdd)
 
+    # Write the output to CSV files and join all the partitions in a single file
     most_frequent_visitors.coalesce(1).write.csv(f&#39;{log_analyzer.n}_most_frequent_visitors.csv&#39;)
     most_frequent_urls.coalesce(1).write.csv(f&#39;{log_analyzer.n}_most_frequent_urls.csv&#39;)
     
@@ -355,20 +371,35 @@ if __name__== &#34;__main__&#34; : # pragma: no cover
         self.logger = logging.getLogger(&#39;access_log_analyzer&#39;)
         
         # Perform checks to test whether the parameters have the expected values
-        try:
-            assert isinstance(kwargs[&#39;n&#39;], int), &#39;The &#34;n&#34; parameter does not match the expected datatype (int)&#39;
-            assert kwargs[&#39;n&#39;] &gt; 0, &#39;The &#34;n&#34; parameter must be greater than zero&#39;
-            assert isinstance(kwargs[&#39;dataset_url&#39;], str), &#39;The &#34;dataset_url&#34; parameter does not match the expected datatype (str)&#39;
-            assert re.match(&#39;^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$&#39;, kwargs[&#39;dataset_url&#39;]), &#39;The &#34;dataset_url&#34; parameter does not match a valid FTP URL&#39;
-        except AssertionError as ae:
-            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+        if not type(kwargs[&#39;n&#39;]) == int:
+            raise ValueError(&#39;The &#34;n&#34; parameter does not match the expected datatype (int)&#39;)
+        
+        if not kwargs[&#39;n&#39;] &gt; 0:
+            raise ValueError(&#39;The &#34;n&#34; parameter must be greater than zero&#39;)
+        
+        if not type(kwargs[&#39;dataset_url&#39;]) == str:
+            raise ValueError(&#39;The &#34;dataset_url&#34; parameter does not match the expected datatype (str)&#39;)
+        
+        if not re.match(&#39;^(s?ftp:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$&#39;, kwargs[&#39;dataset_url&#39;]):
+            raise ValueError(&#39;The &#34;dataset_url&#34; parameter does not match a valid FTP URL&#39;)
         
         # Assign external arguments to class attributes
         self.n = kwargs[&#39;n&#39;]
         self.dataset_url = kwargs[&#39;dataset_url&#39;]
         
         # Regex for cleaning and extracting groups from the logs
-        self.regex = &#39;^(\S+) (\S+) (\S+) \[([\w/]+)([:\d]+)\s([+\-]\d{4})\] &#34;(\S+) (\S+)\s*(\S+)?\s*&#34; (\d{3}) (\S+)&#39;
+        host = &#39;^(\S+) &#39;
+        identity_remote = &#39;(\S+) &#39;
+        identity_local = &#39;(\S+) &#39;
+        date = &#39;\[([\w/]+)&#39;
+        hour = &#39;([:\d]+) &#39;
+        timezone = &#39;([+\-]\d{4})\] &#34;&#39;
+        request_method = &#39;(\S+) &#39;
+        resource = &#39;(\S+) *&#39;
+        protocol = &#39;(\S+)? *&#34; &#39;
+        status_code = &#39;(\d{3}) &#39;
+        bytes_returned = &#39;(\S+)&#39;
+        self.regex = host + identity_remote + identity_local + date + hour + timezone + request_method + resource + protocol + status_code + bytes_returned
 
         self.logger.info(f&#39;AccessLogAnalyzer class is ready!&#39;)
 
@@ -521,13 +552,13 @@ if __name__== &#34;__main__&#34; : # pragma: no cover
         Returns:
             DataFrame: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
         &#39;&#39;&#39;
-        try:
-            assert col_a in df.columns, f&#39;{col_a} is not present in the DataFrame columns.&#39;
-            assert col_b in df.columns, f&#39;{col_b} is not present in the DataFrame columns.&#39;
-        except AssertionError as ae:
-            raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+        if not col_a in df.columns:
+            raise ValueError(f&#39;{col_a} is not present in the DataFrame columns.&#39;)
+        
+        if not col_b in df.columns:
+            raise ValueError(f&#39;{col_b} is not present in the DataFrame columns.&#39;)
             
-        return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).drop(&#39;row_number&#39;).orderBy(F.asc(col_a), F.desc(col_b))
+        return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).orderBy(F.asc(col_a), F.asc(&#39;row_number&#39;)).drop(&#39;row_number&#39;)
     
     def get_n_most_frequent_for_each_day(self, sql_context, rdd, sampling_ratio = 0.1):
         &#39;&#39;&#39;
@@ -736,13 +767,13 @@ In this way, it obtains the n-most-frequent values of the second column and thei
     Returns:
         DataFrame: Parsed DataFrame with the n-most-frequent values of the second column and their frequence for each value of the first column
     &#39;&#39;&#39;
-    try:
-        assert col_a in df.columns, f&#39;{col_a} is not present in the DataFrame columns.&#39;
-        assert col_b in df.columns, f&#39;{col_b} is not present in the DataFrame columns.&#39;
-    except AssertionError as ae:
-        raise AssertionError(f&#39;Assertion error: {ae}&#39;)
+    if not col_a in df.columns:
+        raise ValueError(f&#39;{col_a} is not present in the DataFrame columns.&#39;)
+    
+    if not col_b in df.columns:
+        raise ValueError(f&#39;{col_b} is not present in the DataFrame columns.&#39;)
         
-    return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).drop(&#39;row_number&#39;).orderBy(F.asc(col_a), F.desc(col_b))</code></pre>
+    return df.groupBy(F.col(col_a), F.col(col_b)).agg(F.count(F.col(col_b)).alias(&#39;count&#39;)).withColumn(&#39;row_number&#39;, F.row_number().over(Window.partitionBy(F.col(col_a)).orderBy(F.desc(&#39;count&#39;)))).filter(F.col(&#39;row_number&#39;) &lt;= self.n).orderBy(F.asc(col_a), F.asc(&#39;row_number&#39;)).drop(&#39;row_number&#39;)</code></pre>
 </details>
 </dd>
 <dt id="jobs.nasa_access_logs_analyzer.AccessLogAnalyzer.get_n_most_frequent_for_each_day"><code class="name flex">
