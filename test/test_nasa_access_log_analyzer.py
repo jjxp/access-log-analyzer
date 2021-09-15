@@ -51,8 +51,20 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         self.assertIsInstance(access_log_analyzer, AccessLogAnalyzer, f'Expected AccessLogAnalyzer type and received {type(access_log_analyzer)} instead.')
         
     def test_instantiate_main_class_2(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             AccessLogAnalyzer(n = 0, dataset_url = TestAccessLogsAnalyzer.dataset_url)
+
+    def test_instantiate_main_class_3(self):
+        with self.assertRaises(ValueError):
+            AccessLogAnalyzer(n = 'non-string-value', dataset_url = TestAccessLogsAnalyzer.dataset_url)
+
+    def test_instantiate_main_class_4(self):
+        with self.assertRaises(ValueError):
+            AccessLogAnalyzer(n = 3, dataset_url = 5)
+
+    def test_instantiate_main_class_5(self):
+        with self.assertRaises(ValueError):
+            AccessLogAnalyzer(n = 3, dataset_url = 'not_valid_ftp_url')
     
     def test_read_source_1(self):
         access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
@@ -154,8 +166,20 @@ class TestAccessLogsAnalyzer(unittest.TestCase):
         
         df = TestAccessLogsAnalyzer.sql_ctx.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = 0.5)
         
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             access_log_analyzer.get_n_most_frequent_for_columns(df, 'non_existing_column', 'resource')
+
+    def test_get_n_most_frequent_for_columns_2(self):
+        access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
+        
+        rdd = access_log_analyzer.read_source(self.sc, TestAccessLogsAnalyzer.source_data_path)
+        rdd = access_log_analyzer.get_rdd_valid_lines(rdd)
+        rdd = access_log_analyzer.map_rdd(rdd)
+        
+        df = TestAccessLogsAnalyzer.sql_ctx.createDataFrame(rdd, schema = ['host', 'identity_remote', 'identity_local', 'date', 'time', 'timezone', 'request_method', 'resource', 'protocol', 'status_code', 'bytes_returned'], samplingRatio = 0.5)
+        
+        with self.assertRaises(ValueError):
+            access_log_analyzer.get_n_most_frequent_for_columns(df, 'date', 'non_existing_column')
             
     def test_get_n_most_frequent_for_each_day_1(self):
         access_log_analyzer = AccessLogAnalyzer(n = 3, dataset_url = TestAccessLogsAnalyzer.dataset_url)
